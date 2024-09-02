@@ -30,6 +30,6 @@ requirements:
 tests: []
 
 about:
-  summary: Rerun viewer with Gradio
+  summary: Rerun viewer with Gradio.
 
 
