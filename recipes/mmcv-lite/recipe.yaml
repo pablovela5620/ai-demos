@@ -1,0 +1,68 @@
+context: {}
+
+package:
+  name: mmcv-lite
+  version: 2.2.0
+
+source:
+- url: https://files.pythonhosted.org/packages/8c/e7/075329ead4078d77b14e195f04b03162b99c5644d4186505113f62b7ca6c/mmcv-lite-2.2.0.tar.gz
+  sha256: 62933ea165b2d9ad32e1b72ccd5ccba3cf71b5cd812c4c13c16cb2fcfc46a064
+
+build:
+  script: python -m pip install .
+
+requirements:
+  host:
+  - python >=3.7
+  - pip
+  run:
+  - python >=3.7
+  - addict
+  - mmengine >=0.3.0
+  - numpy
+  - packaging
+  - pillow
+  - pyyaml
+  - yapf
+  - opencv-python >=3
+  # - regex  # sys_platform == 'win32'
+  # - pytest-runner  # extra == 'all'
+  # - ninja  # extra == 'all'
+  # - psutil  # extra == 'all'
+  # - addict  # extra == 'all'
+  # - mmengine >=0.3.0  # extra == 'all'
+  # - numpy  # extra == 'all'
+  # - packaging  # extra == 'all'
+  # - pillow  # extra == 'all'
+  # - pyyaml  # extra == 'all'
+  # - yapf  # extra == 'all'
+  # - coverage  # extra == 'all'
+  # - lmdb  # extra == 'all'
+  # - onnx  # extra == 'all'
+  # - onnxoptimizer  # extra == 'all'
+  # - onnxruntime  # extra == 'all'
+  # - pytest  # extra == 'all'
+  # - pyturbojpeg  # extra == 'all'
+  # - scipy  # extra == 'all'
+  # - tifffile  # extra == 'all'
+  # - regex  # sys_platform == 'win32' and extra == 'all'
+  # - pytest-runner  # extra == 'build'
+  # - ninja  # extra == 'optional'
+  # - psutil  # extra == 'optional'
+  # - coverage  # extra == 'tests'
+  # - lmdb  # extra == 'tests'
+  # - onnx  # extra == 'tests'
+  # - onnxoptimizer  # extra == 'tests'
+  # - onnxruntime  # extra == 'tests'
+  # - pytest  # extra == 'tests'
+  # - pyturbojpeg  # extra == 'tests'
+  # - scipy  # extra == 'tests'
+  # - tifffile  # extra == 'tests'
+
+tests: []
+
+about:
+  homepage: https://github.com/open-mmlab/mmcv
+  summary: OpenMMLab Computer Vision Foundation
+
+

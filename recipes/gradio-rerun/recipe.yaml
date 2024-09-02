@@ -1,0 +1,35 @@
+context: {}
+
+package:
+  name: gradio-rerun
+  version: 0.0.4
+
+source:
+- url: https://files.pythonhosted.org/packages/a1/98/46427565cae33e950309f0d25c867a0f5506b0f5c88d150496e73bff2cc8/gradio_rerun-0.0.4.tar.gz
+  sha256: 6b40a62e952b15b8ca0d3a5cf9d47ac722a8c5b1e5c7b9532a9c9dc0732cae5b
+
+build:
+  script: python -m pip install .
+
+requirements:
+  host:
+  - hatchling
+  - hatch-requirements-txt
+  - hatch-fancy-pypi-readme >=22.5.0
+  - python >=3.8
+  - pip
+  run:
+  - python >=3.8
+  - gradio <5.0, >=4.0
+  - opencv-python
+  - rerun-sdk ==0.17.0
+  # - build  # extra == 'dev'
+  # - opencv-python >=4.10.0  # extra == 'dev'
+  # - twine  # extra == 'dev'
+
+tests: []
+
+about:
+  summary: Rerun viewer with Gradio
+
+

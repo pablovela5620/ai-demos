@@ -1,0 +1,32 @@
+context:
+  version: "0.0.2"
+
+package:
+  name: simplecv
+  version: ${{ version }}
+
+
+build:
+  noarch: python 
+  script: pip install . -v
+
+source: 
+  url: https://github.com/pablovela5620/simplecv/archive/refs/tags/${{ version }}.tar.gz
+  sha256: d7b7e2b47d837789b06dcd89bc6be4e87d19e4f020d97391a16d96da915d2006
+
+requirements:
+  # note that there is no build section
+  host:
+    - pip
+    - python >=3.7
+    - setuptools
+    - wheel
+  run:
+    - jaxtyping
+    - beartype
+    - numpy <2.0
+    - einops
+    - icecream
+    - rerun-sdk
+    - py-opencv
+    - pyserde

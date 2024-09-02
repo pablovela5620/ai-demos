@@ -1,0 +1,26 @@
+version: 5
+environments:
+  default:
+    channels:
+    - url: https://conda.anaconda.org/conda-forge/
+    packages:
+      osx-arm64:
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.20.0-h3336b41_1.conda
+packages:
+- kind: conda
+  name: rattler-build
+  version: 0.20.0
+  build: h3336b41_1
+  build_number: 1
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/rattler-build-0.20.0-h3336b41_1.conda
+  sha256: 2c3bcec4c454861e8ca65304addde340ecdd388ce705e6526b0404aa2028d0bc
+  md5: c083c2be8f2c6f13cb67c7d124df50b2
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 8576785
+  timestamp: 1724168597257

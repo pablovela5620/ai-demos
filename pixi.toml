@@ -1,0 +1,11 @@
+[project]
+channels = ["conda-forge"]
+description = "Add a short description here"
+name = "ai-demos"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+rattler-build = ">=0.20.0,<0.21"
