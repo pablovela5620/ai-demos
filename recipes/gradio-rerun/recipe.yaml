@@ -21,7 +21,7 @@ requirements:
   run:
   - python >=3.8
   - gradio <5.0, >=4.0
-  - opencv-python
+  - py-opencv
   - rerun-sdk ==0.17.0
   # - build  # extra == 'dev'
   # - opencv-python >=4.10.0  # extra == 'dev'

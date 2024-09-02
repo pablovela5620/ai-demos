@@ -24,7 +24,7 @@ requirements:
   - pillow
   - pyyaml
   - yapf
-  - opencv-python >=3
+  - py-opencv
   # - regex  # sys_platform == 'win32'
   # - pytest-runner  # extra == 'all'
   # - ninja  # extra == 'all'
