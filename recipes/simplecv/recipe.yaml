@@ -30,3 +30,8 @@ requirements:
     - rerun-sdk
     - py-opencv
     - pyserde
+
+tests:
+ - python:
+      imports:
+        - simplecv
