@@ -16,7 +16,7 @@ source:
       sha256: da9d558f0c6490c4debcd15dd35f1d185ca28e9d15a20ea4588f20b8ee62d532
 
 build:
-  number: 0
+  number: 1
   script: build.sh
   dynamic_linking:
     rpaths:

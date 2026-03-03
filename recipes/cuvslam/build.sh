@@ -15,8 +15,8 @@ cp "${SRC_DIR}/py.typed" "${DEST}/"
 
 # Patch RPATH so .so files find each other and CUDA libs from conda prefix
 # $ORIGIN → pycuvslam.so finds libcuvslam.so in same directory
-# ../../.. → resolves to $PREFIX/lib from lib/python3.10/site-packages/cuvslam/
-patchelf --set-rpath '$ORIGIN:../../..' "${DEST}/pycuvslam.so"
-patchelf --set-rpath '$ORIGIN:../../..' "${DEST}/libcuvslam.so"
+# $ORIGIN/../../.. → resolves to $PREFIX/lib from lib/python3.10/site-packages/cuvslam/
+patchelf --set-rpath '$ORIGIN:$ORIGIN/../../..' "${DEST}/pycuvslam.so"
+patchelf --set-rpath '$ORIGIN:$ORIGIN/../../..' "${DEST}/libcuvslam.so"
 
 chmod +x "${DEST}/pycuvslam.so" "${DEST}/libcuvslam.so"
