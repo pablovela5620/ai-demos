@@ -1,4 +1,4 @@
-[project]
+[workspace]
 channels = ["conda-forge"]
 name = "ai-demos"
 platforms = ["linux-64", "linux-aarch64"]
