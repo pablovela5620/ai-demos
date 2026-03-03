@@ -9,6 +9,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
@@ -19,16 +23,24 @@ jobs:
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
+    outputs:
+      has-packages-linux-64: ${{ steps.check.outputs.has-packages }}
+      has-packages-linux-aarch64: ${{ steps.check.outputs.has-packages }}
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+      - name: Check out branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: prefix-dev/setup-pixi@v0.8.8
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
 
       - name: Build packages
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
+          RATTLER_BUILD_ENABLE_GITHUB_INTEGRATION: true
+          RATTLER_BUILD_COLOR: always
         run: |
           pixi run rattler-build build \
             -c https://prefix.dev/ai-demos -c conda-forge \
@@ -36,10 +48,13 @@ jobs:
             --skip-existing=all --no-test \
             --target-platform=$TARGET_PLATFORM
 
-      - name: Check for built packages
+      - name: Check for packages
         id: check
+        shell: bash
         run: |
-          if compgen -G "output/**/*.conda" > /dev/null; then
+          shopt -s nullglob
+          files=(output/**/*.conda)
+          if [ ${#files[@]} -gt 0 ]; then
             echo "has-packages=true" >> "$GITHUB_OUTPUT"
           else
             echo "has-packages=false" >> "$GITHUB_OUTPUT"
@@ -47,63 +62,52 @@ jobs:
 
       - name: Upload build artifacts
         if: steps.check.outputs.has-packages == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: packages-${{ matrix.target }}
           path: output/**/*.conda
 
   upload:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
+      id-token: write
+    needs: build
+    if: github.event_name == 'push'
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
-          path: artifacts
+          activate-environment: true
+
+      - name: Download artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          path: output
           merge-multiple: true
 
-      - name: Check for packages to upload
-        id: check
-        run: |
-          if compgen -G "artifacts/**/*.conda" > /dev/null; then
-            echo "has-packages=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has-packages=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Get OIDC token and upload to prefix.dev
-        if: steps.check.outputs.has-packages == 'true'
-        uses: actions/github-script@v7
+      - name: Get JWT
+        id: get_token
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
-            const token = await core.getIDToken('prefix.dev');
-            core.setSecret(token);
-            core.exportVariable('OIDC_TOKEN', token);
+            const token = await core.getIDToken('prefix.dev')
+            core.setOutput('token', token)
 
-      - name: Exchange OIDC token for prefix.dev API key
-        if: steps.check.outputs.has-packages == 'true'
+      - name: Mint the API Key on prefix.dev
+        shell: bash
         run: |
-          PREFIX_API_KEY=$(curl -s -X POST \
-            "https://prefix.dev/api/oidc/mint_token" \
-            -H "Content-Type: application/json" \
-            -d "{\"oidc_token\": \"${OIDC_TOKEN}\"}" \
-            | jq -r '.token')
-          echo "::add-mask::${PREFIX_API_KEY}"
-          echo "PREFIX_API_KEY=${PREFIX_API_KEY}" >> "$GITHUB_ENV"
-
-      - name: Install rattler-build
-        if: steps.check.outputs.has-packages == 'true'
-        run: |
-          curl -SsL "https://github.com/prefix-dev/rattler-build/releases/latest/download/rattler-build-x86_64-unknown-linux-musl" -o rattler-build
-          chmod +x rattler-build
+          TOKEN="${{ steps.get_token.outputs.token }}"
+          RESPONSE="$(curl -s -X POST                 \
+              https://prefix.dev/api/oidc/mint_token \
+              -H 'Content-Type: application/json'    \
+              --data "{\"token\": \"$TOKEN\"}")"
+          echo "::add-mask::$RESPONSE"
+          echo "PREFIX_API_KEY=$RESPONSE" >> "$GITHUB_ENV"
 
       - name: Upload packages to ai-demos channel
-        if: steps.check.outputs.has-packages == 'true'
         run: |
-          for file in artifacts/**/*.conda; do
-            ./rattler-build upload prefix -c ai-demos "$file" || true
+          shopt -s nullglob
+          for file in output/**/*.conda; do
+            rattler-build upload prefix -c ai-demos "$file" || true
           done
