@@ -16,7 +16,7 @@ source:
       sha256: da9d558f0c6490c4debcd15dd35f1d185ca28e9d15a20ea4588f20b8ee62d532
 
 build:
-  number: 1
+  number: 2
   script: build.sh
   dynamic_linking:
     rpaths:
@@ -43,8 +43,9 @@ requirements:
     - python 3.10.*
   run:
     - python 3.10.*
-    - libcublas >=12.0
-    - libcusolver >=11.0
+    - cuda-version >=12,<13
+    - libcublas >=12.0,<13
+    - libcusolver >=11.0,<12
     - libstdcxx-ng >=14.2
     - __glibc >=2.17
 
