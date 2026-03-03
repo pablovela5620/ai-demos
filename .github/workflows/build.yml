@@ -1,60 +1,109 @@
-name: Build all packages
+name: Build and Upload Packages
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-
   build:
     strategy:
       matrix:
         include:
-          - { target: linux-64,  os: ubuntu-20.04 }
-        #   - { target: win-64,    os: windows-latest }
-          # force older macos-13 to get x86_64 runners
-        #   - { target: osx-64,    os: macos-13 }
-          - { target: osx-arm64, os: macos-14 }
+          - { target: linux-64, os: ubuntu-latest }
+          - { target: linux-aarch64, os: ubuntu-latest }
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-    - uses: prefix-dev/setup-pixi@v0.5.1
-      with:
-        pixi-version: v0.25.0
-        cache: true
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-    - name: Add .pixi/envs/default to the $PATH
-      shell: bash
-      run: |
-        echo "$(pwd)/.pixi/envs/default/bin" >> $GITHUB_PATH
+      - uses: prefix-dev/setup-pixi@v0.8.8
 
-    - name: Run code in changed subdirectories
-      shell: bash
-      env:
-        TARGET_PLATFORM: ${{ matrix.target }}
+      - name: Build packages
+        env:
+          TARGET_PLATFORM: ${{ matrix.target }}
+        run: |
+          pixi run rattler-build build \
+            -c https://prefix.dev/ai-demos -c conda-forge \
+            --recipe-dir recipes/ \
+            --skip-existing=all --no-test \
+            --target-platform=$TARGET_PLATFORM
 
-      run: |
-        rattler-build build --recipe-dir . \
-          --skip-existing=all --target-platform=$TARGET_PLATFORM \
-          -c conda-forge -c https://prefix.dev/ai-demos
+      - name: Check for built packages
+        id: check
+        run: |
+          if compgen -G "output/**/*.conda" > /dev/null; then
+            echo "has-packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-packages=false" >> "$GITHUB_OUTPUT"
+          fi
 
-    - name: Upload all packages
-      shell: bash
-      # do not upload on PR
-      if: github.event_name == 'push'
-      env:
-        PREFIX_API_KEY: ${{ secrets.PREFIX_API_KEY }}
-      run: |
-        # ignore errors because we want to ignore duplicate packages
-        for file in output/**/*.conda; do
-          rattler-build upload prefix -c ai-demos "$file" || true
-        done
+      - name: Upload build artifacts
+        if: steps.check.outputs.has-packages == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.target }}
+          path: output/**/*.conda
+
+  upload:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Check for packages to upload
+        id: check
+        run: |
+          if compgen -G "artifacts/**/*.conda" > /dev/null; then
+            echo "has-packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-packages=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Get OIDC token and upload to prefix.dev
+        if: steps.check.outputs.has-packages == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken('prefix.dev');
+            core.setSecret(token);
+            core.exportVariable('OIDC_TOKEN', token);
+
+      - name: Exchange OIDC token for prefix.dev API key
+        if: steps.check.outputs.has-packages == 'true'
+        run: |
+          PREFIX_API_KEY=$(curl -s -X POST \
+            "https://prefix.dev/api/oidc/mint_token" \
+            -H "Content-Type: application/json" \
+            -d "{\"oidc_token\": \"${OIDC_TOKEN}\"}" \
+            | jq -r '.token')
+          echo "::add-mask::${PREFIX_API_KEY}"
+          echo "PREFIX_API_KEY=${PREFIX_API_KEY}" >> "$GITHUB_ENV"
+
+      - name: Install rattler-build
+        if: steps.check.outputs.has-packages == 'true'
+        run: |
+          curl -SsL "https://github.com/prefix-dev/rattler-build/releases/latest/download/rattler-build-x86_64-unknown-linux-musl" -o rattler-build
+          chmod +x rattler-build
+
+      - name: Upload packages to ai-demos channel
+        if: steps.check.outputs.has-packages == 'true'
+        run: |
+          for file in artifacts/**/*.conda; do
+            ./rattler-build upload prefix -c ai-demos "$file" || true
+          done

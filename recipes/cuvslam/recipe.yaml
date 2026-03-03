@@ -1,0 +1,62 @@
+context:
+  version: "0.2.0"
+
+package:
+  name: cuvslam
+  version: ${{ version }}
+
+source:
+  - if: target_platform == "linux-64"
+    then:
+      url: https://github.com/pablovela5620/PyCuVSLAM/releases/download/v${{ version }}/cuvslam-${{ version }}-linux-x86_64.tar.gz
+      sha256: 77c67df0054c7751beeed54dbeae227274cda8e7c730e854a8c255f7659194e3
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://github.com/pablovela5620/PyCuVSLAM/releases/download/v${{ version }}/cuvslam-${{ version }}-linux-aarch64.tar.gz
+      sha256: da9d558f0c6490c4debcd15dd35f1d185ca28e9d15a20ea4588f20b8ee62d532
+
+build:
+  number: 0
+  script: build.sh
+  dynamic_linking:
+    rpaths:
+      - lib/python3.10/site-packages/cuvslam/
+    rpath_allowlist:
+      - \$ORIGIN
+      - /usr/local/cuda/lib64
+    binary_relocation: false
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcublas.so*"
+      - "*/libcusolver.so*"
+      - "*/libpython3.10.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+
+requirements:
+  build:
+    - patchelf
+  host:
+    - python 3.10.*
+  run:
+    - python 3.10.*
+    - libcublas >=12.0
+    - libcusolver >=11.0
+    - libstdcxx-ng >=14.2
+    - __glibc >=2.17
+
+tests:
+  - python:
+      imports:
+        - cuvslam
+        - cuvslam.pycuvslam
+
+about:
+  homepage: https://github.com/NVlabs/pycuvslam
+  license: LicenseRef-Proprietary
+  license_file: LICENSE
+  summary: Python bindings for NVIDIA cuVSLAM visual SLAM library
+  repository: https://github.com/NVlabs/pycuvslam
