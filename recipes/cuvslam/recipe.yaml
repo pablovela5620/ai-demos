@@ -16,7 +16,7 @@ source:
       sha256: da9d558f0c6490c4debcd15dd35f1d185ca28e9d15a20ea4588f20b8ee62d532
 
 build:
-  number: 2
+  number: 3
   script: build.sh
   dynamic_linking:
     rpaths:
@@ -60,4 +60,16 @@ about:
   license: LicenseRef-Proprietary
   license_file: LICENSE
   summary: Python bindings for NVIDIA cuVSLAM visual SLAM library
+  description: |
+    NVIDIA cuVSLAM is a GPU-accelerated Visual Simultaneous Localization and
+    Mapping (VSLAM) library. It provides real-time visual odometry and SLAM
+    with map persistence for robotics applications.
+
+    **Tracking modes:** monocular, stereo, stereo-inertial, and multi-camera.
+
+    **Supported cameras:** Intel RealSense, Stereolabs ZED, Luxonis OAK-D.
+
+    **Platforms:** Linux x86_64 and Jetson aarch64 (requires CUDA 12).
+
+    Upstream repository: [NVlabs/pycuvslam](https://github.com/NVlabs/pycuvslam)
   repository: https://github.com/NVlabs/pycuvslam
