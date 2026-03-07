@@ -1,0 +1,58 @@
+context:
+  version: "0.3.0"
+
+package:
+  name: brush
+  version: ${{ version }}
+
+source:
+  - if: target_platform == "linux-64"
+    then:
+      url: https://github.com/ArthurBrussee/brush/releases/download/v${{ version }}/brush-app-x86_64-unknown-linux-gnu.tar.xz
+      sha256: 4f0f9a8785d1951c62df26aae247c02c5bba32b00f40b06df4e1c9b867399e20
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://github.com/ArthurBrussee/brush/releases/download/v${{ version }}/brush-app-aarch64-apple-darwin.tar.xz
+      sha256: 65b2631398c839be3c1d4d7160fe2326389dec87830aac0710985e6690a1048c
+
+build:
+  number: 0
+  script: build.sh
+  skip:
+    - target_platform == "linux-aarch64"
+  dynamic_linking:
+    binary_relocation: false
+    missing_dso_allowlist:
+      - "*/libgcc_s.so*"
+      - "*/libm.so*"
+      - "*/libc.so*"
+      - "*/ld-linux-x86-64.so*"
+      - "*/libSystem.B.dylib"
+
+requirements:
+  run:
+    - if: linux
+      then:
+        - __glibc >=2.17
+    - if: osx
+      then:
+        - __osx >=11.0
+
+tests:
+  - package_contents:
+      bin:
+        - brush_app
+  - script:
+      - brush_app --help
+      - brush_app --version
+
+about:
+  homepage: https://github.com/ArthurBrussee/brush
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: 3D Gaussian splatting reconstruction engine using WebGPU
+  description: |
+    Brush is a 3D reconstruction engine using Gaussian splatting, written in Rust.
+    Uses WebGPU for GPU compute — works on AMD, NVIDIA, and Intel GPUs without CUDA.
+    Includes CLI training and GUI viewer (--with-viewer) modes.
+  repository: https://github.com/ArthurBrussee/brush

@@ -20,12 +20,14 @@ jobs:
         include:
           - { target: linux-64, os: ubuntu-latest }
           - { target: linux-aarch64, os: ubuntu-latest }
+          - { target: osx-arm64, os: macos-latest }
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
     outputs:
       has-packages-linux-64: ${{ steps.check.outputs.has-packages }}
       has-packages-linux-aarch64: ${{ steps.check.outputs.has-packages }}
+      has-packages-osx-arm64: ${{ steps.check.outputs.has-packages }}
     permissions:
       contents: read
       pull-requests: write
