@@ -18,6 +18,8 @@ source:
 build:
   number: 3
   script: build.sh
+  skip:
+    - target_platform == "osx-arm64"
   dynamic_linking:
     rpaths:
       - lib/python3.10/site-packages/cuvslam/
