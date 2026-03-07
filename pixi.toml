@@ -1,7 +1,7 @@
 [workspace]
 channels = ["conda-forge"]
 name = "ai-demos"
-platforms = ["linux-64", "linux-aarch64"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 version = "0.1.0"
 description = "Conda packages for AI demos hosted on prefix.dev/ai-demos"
 
