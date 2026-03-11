@@ -50,9 +50,8 @@ jobs:
         id: check
         shell: bash
         run: |
-          shopt -s globstar nullglob
-          files=(output/**/*.conda)
-          if [ ${#files[@]} -gt 0 ]; then
+          first_file="$(find output -type f -name '*.conda' -print -quit)"
+          if [ -n "$first_file" ]; then
             echo "has-packages=true" >> "$GITHUB_OUTPUT"
           else
             echo "has-packages=false" >> "$GITHUB_OUTPUT"
@@ -106,28 +105,26 @@ jobs:
       - name: Upload packages to ai-demos channel
         shell: bash
         run: |
-          shopt -s globstar nullglob
-          files=(output/**/*.conda)
-          if [ ${#files[@]} -eq 0 ]; then
+          first_file="$(find output -type f -name '*.conda' -print -quit)"
+          if [ -z "$first_file" ]; then
             echo "No packages to upload"
             exit 0
           fi
 
-          for file in "${files[@]}"; do
+          while IFS= read -r file; do
             rattler-build upload prefix -c ai-demos --skip-existing --verbose --log-style plain "$file"
-          done
+          done < <(find output -type f -name '*.conda' | sort)
 
       - name: Verify packages via pixi search
         shell: bash
         run: |
-          shopt -s globstar nullglob
-          files=(output/**/*.conda)
-          if [ ${#files[@]} -eq 0 ]; then
+          first_file="$(find output -type f -name '*.conda' -print -quit)"
+          if [ -z "$first_file" ]; then
             echo "No packages to verify"
             exit 0
           fi
 
-          for file in "${files[@]}"; do
+          while IFS= read -r file; do
             subdir="$(basename "$(dirname "$file")")"
             filename="$(basename "$file")"
             package_name="${filename%%-[0-9]*}"
@@ -145,4 +142,4 @@ jobs:
 
               sleep 15
             done
-          done
+          done < <(find output -type f -name '*.conda' | sort)
