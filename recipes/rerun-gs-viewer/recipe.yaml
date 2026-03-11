@@ -10,12 +10,8 @@ source:
   sha256: 5ff23da46294a2017cfa979bf8201ac1c71fc7ab45071c064f42d657c67f6966
 
 build:
-  number: 0
-  script:
-    - cargo build --release --locked --bin gsplat-rerun-minimal
-    - mkdir -p "${PREFIX}/bin"
-    - cp "${SRC_DIR}/target/release/gsplat-rerun-minimal" "${PREFIX}/bin/rerun-gs-viewer"
-    - chmod +x "${PREFIX}/bin/rerun-gs-viewer"
+  number: 1
+  script: build.sh
   skip:
     - target_platform == "linux-aarch64"
   dynamic_linking:
@@ -72,3 +68,6 @@ about:
   homepage: https://github.com/pablovela5620/rerun-simple-gs
   repository: https://github.com/pablovela5620/rerun-simple-gs
   summary: Stock Rerun viewer with a Gaussian splat visualizer extension
+  description: |
+    Native Rerun viewer binary with the Gaussian splat visualizer extension
+    from rerun-simple-gs.
