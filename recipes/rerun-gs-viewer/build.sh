@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-cargo build --release --locked --bin gsplat-rerun-minimal
+cd "${SRC_DIR}"
+"${BUILD_PREFIX}/bin/cargo" install --locked --root "${PREFIX}" --path . --bin gsplat-rerun-minimal
 
-mkdir -p "${PREFIX}/bin"
-cp "${SRC_DIR}/target/release/gsplat-rerun-minimal" "${PREFIX}/bin/rerun-gs-viewer"
-chmod +x "${PREFIX}/bin/rerun-gs-viewer"
+mv "${PREFIX}/bin/gsplat-rerun-minimal" "${PREFIX}/bin/rerun-gs-viewer"

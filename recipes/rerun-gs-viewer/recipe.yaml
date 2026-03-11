@@ -1,19 +1,17 @@
 context:
-  version: "0.1.0"
+  version: "0.30.2"
 
 package:
   name: rerun-gs-viewer
   version: ${{ version }}
 
 source:
-  url: https://github.com/pablovela5620/rerun-simple-gs/archive/db18d09cfd9c050bc0258ef8bb0104075811f7a0.tar.gz
-  sha256: 5ff23da46294a2017cfa979bf8201ac1c71fc7ab45071c064f42d657c67f6966
+  url: https://github.com/pablovela5620/rerun-simple-gs/archive/9679cb7be941b3d3e4b02a87046a31bda9232865.tar.gz
+  sha256: 9a9e8b1cadc3394843a6372548058a9805b4c0b4cd1e5fb110de7b8c0d5dfbe0
 
 build:
-  number: 1
+  number: 0
   script: build.sh
-  skip:
-    - target_platform == "linux-aarch64"
   dynamic_linking:
     missing_dso_allowlist:
       - "*/libSystem.B.dylib"
@@ -28,10 +26,10 @@ requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
+    - ${{ compiler('rust') }}
     - cmake
     - ninja
     - pkg-config
-    - rust
   host:
     - if: linux
       then:
@@ -63,6 +61,7 @@ tests:
         - rerun-gs-viewer
   - script:
       - test -x $PREFIX/bin/rerun-gs-viewer
+      - rerun-gs-viewer --version
 
 about:
   homepage: https://github.com/pablovela5620/rerun-simple-gs
