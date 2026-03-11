@@ -115,7 +115,7 @@ jobs:
             rattler-build upload prefix -c ai-demos --skip-existing --verbose --log-style plain "$file"
           done
 
-      - name: Verify packages in channel repodata
+      - name: Verify packages via pixi search
         shell: bash
         run: |
           shopt -s globstar nullglob
@@ -128,15 +128,16 @@ jobs:
           for file in "${files[@]}"; do
             subdir="$(basename "$(dirname "$file")")"
             filename="$(basename "$file")"
+            package_name="${filename%%-[0-9]*}"
 
-            for attempt in {1..20}; do
-              if curl -L --fail --silent --show-error "https://prefix.dev/ai-demos/${subdir}/repodata.json" | grep -F "\"${filename}\"" > /dev/null; then
-                echo "Verified ${filename} in ${subdir} repodata"
+            for attempt in {1..30}; do
+              if pixi search "${package_name}" -c https://prefix.dev/ai-demos -p "${subdir}" | grep -F "${filename}" > /dev/null; then
+                echo "Verified ${filename} via pixi search on ${subdir}"
                 break
               fi
 
-              if [ "$attempt" -eq 20 ]; then
-                echo "Timed out waiting for ${filename} in ${subdir} repodata" >&2
+              if [ "$attempt" -eq 30 ]; then
+                echo "Timed out waiting for ${filename} via pixi search on ${subdir}" >&2
                 exit 1
               fi
 
