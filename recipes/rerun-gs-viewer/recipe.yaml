@@ -1,0 +1,69 @@
+context:
+  version: "0.1.0"
+
+package:
+  name: rerun-gs-viewer
+  version: ${{ version }}
+
+source:
+  url: https://github.com/pablovela5620/rerun-simple-gs/archive/db18d09cfd9c050bc0258ef8bb0104075811f7a0.tar.gz
+  sha256: 5ff23da46294a2017cfa979bf8201ac1c71fc7ab45071c064f42d657c67f6966
+
+build:
+  number: 0
+  script:
+    - cargo build --release --locked --bin gsplat-rerun-minimal
+    - mkdir -p "${PREFIX}/bin"
+    - cp "${SRC_DIR}/target/release/gsplat-rerun-minimal" "${PREFIX}/bin/rerun-gs-viewer"
+    - chmod +x "${PREFIX}/bin/rerun-gs-viewer"
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libSystem.B.dylib"
+      - "*/libobjc.A.dylib"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libdl.so*"
+      - "*/libpthread.so*"
+      - "*/ld-linux-*.so*"
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+    - pkg-config
+    - rust
+  host:
+    - if: linux
+      then:
+        - libxkbcommon
+        - wayland
+        - xorg-libx11
+        - xorg-libxcursor
+        - xorg-libxi
+        - xorg-libxinerama
+        - xorg-libxrandr
+  run:
+    - if: linux
+      then:
+        - libxkbcommon
+        - wayland
+        - xorg-libx11
+        - xorg-libxcursor
+        - xorg-libxi
+        - xorg-libxinerama
+        - xorg-libxrandr
+        - __glibc >=2.17
+
+tests:
+  - package_contents:
+      bin:
+        - rerun-gs-viewer
+  - script:
+      - test -x $PREFIX/bin/rerun-gs-viewer
+
+about:
+  homepage: https://github.com/pablovela5620/rerun-simple-gs
+  repository: https://github.com/pablovela5620/rerun-simple-gs
+  summary: Stock Rerun viewer with a Gaussian splat visualizer extension
