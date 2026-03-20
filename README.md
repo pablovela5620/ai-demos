@@ -8,6 +8,7 @@ Conda package forge for AI/robotics demos, built with [rattler-build](https://ra
 |---------|-------------|-----------|
 | [cuvslam](https://prefix.dev/channels/ai-demos/packages/cuvslam) | Python bindings for NVIDIA cuVSLAM visual SLAM | linux-64, linux-aarch64 |
 | [simplecv](https://prefix.dev/channels/ai-demos/packages/simplecv) | Simple computer-vision utilities | noarch |
+| [splat-transform](https://prefix.dev/channels/ai-demos/packages/splat-transform) | CLI for 3D Gaussian splat format conversion and transformation | linux-64, osx-arm64 |
 
 ## Prerequisites
 
