@@ -1,0 +1,86 @@
+context:
+  version: "0.3.0"
+
+package:
+  name: lietorch
+  version: ${{ version }}
+
+source:
+  url: https://github.com/princeton-vl/lietorch/archive/e7df86554156b36846008d8ddbcc4d8521a16554.tar.gz
+  sha256: 856ff3792a4d4b5343ad642fd699a077a556758526d9b231616fc277b170c847
+  patches:
+    - patches/setup.py.patch
+    - patches/pyproject.toml.patch
+
+build:
+  number: 0
+  script: build.sh
+  skip:
+    - not linux-64
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libnvrtc.so*"
+      - "*/libtorch.so"
+      - "*/libtorch_cpu.so"
+      - "*/libtorch_cuda.so"
+      - "*/libtorch_python.so"
+      - "*/libc10.so"
+      - "*/libc10_cuda.so"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libdl.so*"
+      - "*/libpthread.so*"
+      - "*/librt.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+      - "*/libnvToolsExt.so*"
+      - "*/libcudnn.so*"
+      - "*/libcublas.so*"
+      - "*/libcublasLt.so*"
+      - "*/libcusparse.so*"
+      - "*/libcusolver.so*"
+      - "*/libcufft.so*"
+      - "*/libcurand.so*"
+      - "*/libnccl.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+  host:
+    - python 3.11.*
+    - setuptools
+    - pytorch-gpu >=2.8.0
+    - eigen >=3.4.0,<4
+    - cuda-version >=12.8,<13
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+  run:
+    - python 3.11.*
+    - pytorch-gpu >=2.8.0
+
+tests:
+  - python:
+      imports:
+        - lietorch
+
+about:
+  homepage: https://github.com/princeton-vl/lietorch
+  repository: https://github.com/princeton-vl/lietorch
+  license: BSD-3-Clause
+  summary: Lie Groups for PyTorch with CUDA-accelerated backends
+  description: |
+    LieTorch generalizes PyTorch to 3D transformation groups (SE3, Sim3, SO3,
+    etc.) with CUDA-accelerated Lie group operations. Provides tangent-space
+    backpropagation for differentiable optimization on manifolds.
+
+    Built for compute capabilities 8.0 (A100), 8.6 (RTX 30xx), 8.9 (RTX 40xx),
+    9.0 (H100), and 12.0 (RTX 50xx) with PTX forward-compat.
+
+    Upstream: [princeton-vl/lietorch](https://github.com/princeton-vl/lietorch)
+    Paper: [Tangent Space Backpropagation for 3D Transformation Groups (CVPR 2021)](https://arxiv.org/abs/2103.12032)
