@@ -9,7 +9,9 @@ export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.0;8.6;8.9;9.0;12.0+PTX}"
 
 # rattler-build uses $PREFIX for the host env where eigen/torch live.
 # The patched setup.py reads CONDA_PREFIX for eigen header paths.
+# CUDA_HOME tells torch's CUDAExtension where to find nvcc and CUDA libs.
 export CONDA_PREFIX="$PREFIX"
+export CUDA_HOME="$PREFIX"
 
 echo "Building lietorch for CUDA architectures: $TORCH_CUDA_ARCH_LIST"
 python setup.py build_ext install --prefix="$PREFIX"
