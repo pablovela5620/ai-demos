@@ -54,7 +54,9 @@ requirements:
   host:
     - python 3.11.*
     - setuptools
-    - pytorch-gpu >=2.8.0
+    # Use pytorch (not pytorch-gpu) so the solver doesn't require __cuda
+    # (no physical GPU on CI). cuda-version steers to the CUDA variant.
+    - pytorch >=2.8.0
     - eigen >=3.4.0,<4
     - cuda-version >=12.8,<13
     - cuda-cudart-dev
