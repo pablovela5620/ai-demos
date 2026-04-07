@@ -39,6 +39,10 @@ jobs:
           TARGET_PLATFORM: ${{ matrix.target }}
           RATTLER_BUILD_ENABLE_GITHUB_INTEGRATION: true
           RATTLER_BUILD_COLOR: always
+          # Pretend CUDA 12 is available so the solver can resolve pytorch-gpu
+          # on CI runners that lack a physical GPU (nvcc compilation is fine
+          # without one — only runtime needs a GPU).
+          CONDA_OVERRIDE_CUDA: "12"
         run: |
           pixi run rattler-build build \
             -c https://prefix.dev/ai-demos -c conda-forge \
