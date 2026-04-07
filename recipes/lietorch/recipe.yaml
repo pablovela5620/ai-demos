@@ -15,7 +15,7 @@ source:
 build:
   number: 0
   skip:
-    - not linux-64
+    - target_platform != "linux-64"
   script: build.sh
   dynamic_linking:
     missing_dso_allowlist:
