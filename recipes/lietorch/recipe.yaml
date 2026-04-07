@@ -1,0 +1,67 @@
+# rattler-build recipe for lietorch
+# Builds Lie group CUDA extensions from upstream princeton-vl/lietorch
+# with hardcoded TORCH_CUDA_ARCH_LIST for prebuilt distribution.
+package:
+  name: lietorch
+  version: "0.3.0"
+
+source:
+  git: https://github.com/princeton-vl/lietorch.git
+  rev: e7df86554156b36846008d8ddbcc4d8521a16554
+  patches:
+    - patches/setup.py.patch
+    - patches/pyproject.toml.patch
+
+build:
+  number: 0
+  skip:
+    - target_platform != "linux-64"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libc10.so*"
+      - "*/libc10_cuda.so*"
+      - "*/libtorch.so*"
+      - "*/libtorch_cpu.so*"
+      - "*/libtorch_cuda.so*"
+      - "*/libtorch_python.so*"
+      - "*/libpython3.11.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+  host:
+    - python 3.11.*
+    - setuptools
+    - pytorch-gpu >=2.8.0
+    - eigen >=3.4.0,<4
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+  run:
+    - python 3.11.*
+    - pytorch-gpu >=2.8.0
+
+tests:
+  - python:
+      imports:
+        - lietorch
+
+about:
+  homepage: https://github.com/princeton-vl/lietorch
+  license: BSD-3-Clause
+  summary: Lie Groups for PyTorch - CUDA-accelerated Lie group operations
+  description: |
+    lietorch provides differentiable Lie group operations (SO3, SE3, Sim3, RxSO3)
+    for PyTorch, built as CUDA extensions. Used by DPVO, DROID-SLAM, and MASt3R-SLAM
+    for differentiable pose optimization.
+  repository: https://github.com/princeton-vl/lietorch
