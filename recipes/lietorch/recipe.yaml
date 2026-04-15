@@ -13,7 +13,7 @@ source:
     - patches/pyproject.toml.patch
 
 build:
-  number: 2
+  number: 3
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -52,7 +52,7 @@ requirements:
     - cuda-nvcc
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0,<2.9
+    - pytorch-gpu >=2.8.0
 
 tests:
   - python:

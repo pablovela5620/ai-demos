@@ -14,7 +14,7 @@ source:
   rev: f3b0b2e65eae854e220a7b5f8869a195d7bdc5eb
 
 build:
-  number: 2
+  number: 4
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -64,7 +64,7 @@ requirements:
     - numpy <2
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0,<2.9
+    - pytorch-gpu >=2.8.0
     - lietorch
     - einops
     - faiss

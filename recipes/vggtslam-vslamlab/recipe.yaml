@@ -14,7 +14,7 @@ source:
   rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
 
 build:
-  number: 2
+  number: 3
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -89,7 +89,7 @@ requirements:
     - virtualenv >=20.10.0
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0,<2.9
+    - pytorch-gpu >=2.8.0
     - torchvision
     - opencv
     - evo

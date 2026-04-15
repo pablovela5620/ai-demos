@@ -14,7 +14,7 @@ source:
   rev: 9856bac50fe634e73ad29dc80ab39ca64c1fb46b
 
 build:
-  number: 2
+  number: 4
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -60,7 +60,7 @@ requirements:
     - eigen
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0,<2.9
+    - pytorch-gpu >=2.8.0
     - lietorch
     - tqdm
     - open3d

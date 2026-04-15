@@ -15,7 +15,7 @@ source:
   rev: b19f24b6c52812eeeb1551f04d5f1fc6e24881cf
 
 build:
-  number: 2
+  number: 3
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -61,7 +61,7 @@ requirements:
     - numpy <2
   run:
     - python 3.10.*
-    - pytorch-gpu >=2.8.0,<2.9
+    - pytorch-gpu >=2.8.0
     - torchvision
     - wandb
     - munch

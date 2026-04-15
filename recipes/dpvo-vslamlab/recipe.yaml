@@ -15,7 +15,7 @@ source:
   rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
 
 build:
-  number: 3
+  number: 4
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -130,7 +130,7 @@ requirements:
     - opencv
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0,<2.9
+    - pytorch-gpu >=2.8.0
     - torchvision
     - pytorch_scatter
     - opencv
