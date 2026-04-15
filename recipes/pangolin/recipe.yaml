@@ -47,6 +47,8 @@ requirements:
     - libgl-devel
     - libegl-devel
     - libglvnd-devel
+    - libopengl-devel
+    - epoxy
     - xorg-libx11
     - xorg-libxext
     - xorg-libxrender
