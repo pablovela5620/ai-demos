@@ -1,0 +1,62 @@
+# Variant configuration for ai-demos conda packages.
+#
+# Adapted from VSLAM-LAB/conda-packages conda_build_config.yaml
+# for linux-64 with CUDA 12.9.
+#
+# This file is used by rattler-build to resolve ${{ compiler() }},
+# ${{ stdlib() }}, and variant variables like cuda_compiler_version.
+#
+# Key differences from VSLAM-LAB/conda-packages:
+# - linux-64 only (no osx/win/arm selectors)
+# - CUDA 12.9 (not 12.6)
+# - No CF_CUDA_ENABLED gating (CUDA always available)
+
+# ── C / C++ compilers ──────────────────────────────────────────────────────────
+c_compiler:
+  - gcc
+c_compiler_version:
+  - 13
+
+cxx_compiler:
+  - gxx
+cxx_compiler_version:
+  - 13
+
+fortran_compiler:
+  - gfortran
+fortran_compiler_version:
+  - 13
+
+# ── C standard library (sysroot) ──────────────────────────────────────────────
+# ${{ stdlib('c') }} expands to sysroot_linux-64 with this version.
+# This provides the properly-patched glibc linker scripts that the
+# cross-compiler needs (fixes absolute /lib64/ paths in libc.so etc.).
+c_stdlib:
+  - sysroot
+c_stdlib_version:
+  - 2.17
+
+# ── CUDA compiler ─────────────────────────────────────────────────────────────
+# ${{ compiler('cuda') }} expands to cuda-nvcc_linux-64 with this version.
+cuda_compiler:
+  - cuda-nvcc
+cuda_compiler_version:
+  - 12.9
+
+# ── Variant matrix control ─────────────────────────────────────────────────────
+# zip_keys ensures compiler versions are paired (not crossed).
+# Without this, 2 compiler versions × 2 CUDA versions = 4 builds.
+# With zipping, they pair up: compiler_v13 + cuda_12.9 = 1 build.
+zip_keys:
+  -
+    - c_compiler_version
+    - cxx_compiler_version
+    - fortran_compiler_version
+    - cuda_compiler
+    - cuda_compiler_version
+
+# ── Python ─────────────────────────────────────────────────────────────────────
+python:
+  - 3.11
+numpy:
+  - "1.23"

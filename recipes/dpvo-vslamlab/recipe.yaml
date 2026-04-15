@@ -1,5 +1,7 @@
 # rattler-build recipe for dpvo-vslamlab
-# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
+# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10.
+# Uses ${{ compiler('cuda') }} + ${{ stdlib('c') }} for proper sysroot
+# setup (needed because DPViewer uses raw cmake + find_package(Torch)).
 context:
   name: dpvo-vslamlab
   version: "1.0"
@@ -40,30 +42,37 @@ build:
 
 requirements:
   build:
+    - ${{ compiler('cuda') }}
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
     - ninja
     - cmake <4
     - make
     - pkg-config
-    - patchelf
   host:
     - python 3.11.*
     - setuptools
     - pip
     - pybind11
-    # CUDA — DPViewer uses raw cmake + find_package(Torch) which needs
-    # the full CUDA toolkit (PyTorch's cmake config references CUDA:: targets)
-    - cuda-version 12.9.*
+    # CUDA Toolkit (version locked by compiler('cuda') variant)
+    - cuda-version ==${{ cuda_compiler_version }}
     - cuda-cudart-dev
     - cuda-crt
-    - cuda-nvcc
     - cuda-nvrtc-dev
     - cuda-driver-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cudnn
     - libcublas-dev
     - libcufft-dev
     - libcurand-dev
     - libcufile-dev
+    - libcusparse-dev
+    - libcusolver-dev
+    - libcudss-dev
+    - cusparselt
+    - libnvjitlink
     # X11 + OpenGL (needed for DPViewer pybind11 build)
     - libgl-devel
     - libegl-devel
@@ -81,11 +90,13 @@ requirements:
     - libxkbcommon
     - glew
     - wayland
-    # Compile-time deps (DPViewer links against pangolin via pybind11)
+    # Compile-time deps
     - pangolin
     - pytorch-gpu >=2.8.0
+    - torchvision
     - eigen
     - numpy
+    - opencv
   run:
     - python 3.11.*
     - pytorch-gpu >=2.8.0
