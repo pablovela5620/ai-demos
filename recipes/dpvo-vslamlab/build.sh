@@ -15,5 +15,9 @@ if [ ! -f "$TORCH_LIB/libkineto.a" ]; then
   "$AR" rcs "$TORCH_LIB/libkineto.a" /tmp/kineto_stub.o
 fi
 
+# DPViewer's CMakeLists.txt hardcodes _GLIBCXX_USE_CXX11_ABI=0 (old ABI),
+# but conda-forge's PyTorch uses the new ABI (=1). Patch it to match.
+sed -i 's/-D_GLIBCXX_USE_CXX11_ABI=0/-D_GLIBCXX_USE_CXX11_ABI=1/' DPViewer/CMakeLists.txt
+
 pip install ./DPViewer --no-deps --no-build-isolation --use-pep517
 pip install . --no-deps --no-build-isolation

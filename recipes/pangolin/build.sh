@@ -5,6 +5,8 @@ set -euxo pipefail
 # the submodule isn't present. Pangolin's CMakeLists.txt falls back to
 # find_package(pybind11) which finds conda's pybind11 via -Dpybind11_DIR.
 
+# Build with default (new) C++11 ABI to match conda-forge's PyTorch.
+# DPViewer's CMakeLists.txt is patched during dpvo build to also use new ABI.
 cmake -B build -S . -G Ninja \
   -DCMAKE_INSTALL_PREFIX="$PREFIX" \
   -DCMAKE_PREFIX_PATH="$PREFIX" \

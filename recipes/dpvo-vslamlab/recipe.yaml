@@ -15,7 +15,7 @@ source:
   rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
 
 build:
-  number: 2
+  number: 3
   skip:
     - target_platform != "linux-64"
   script: build.sh

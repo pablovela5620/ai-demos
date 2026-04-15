@@ -10,7 +10,7 @@ source:
   sha256: 348f5c082d69afbb74b1af022d193cc0018ef8032a39409eb3f99c4ac2dd4b1e
 
 build:
-  number: 0
+  number: 2
   skip:
     - target_platform != "linux-64"
   script: build.sh
