@@ -1,0 +1,109 @@
+# rattler-build recipe for vggtslam-vslamlab
+# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
+# NOTE: build.sh clones external git repos (salad, vggt) during build.
+context:
+  name: vggtslam-vslamlab
+  version: "1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  git: https://github.com/VSLAM-LAB/VGGT-SLAM-VSLAM-LAB
+  rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
+
+build:
+  number: 0
+  skip:
+    - target_platform != "linux-64"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libc10.so*"
+      - "*/libc10_cuda.so*"
+      - "*/libtorch.so*"
+      - "*/libtorch_cpu.so*"
+      - "*/libtorch_cuda.so*"
+      - "*/libtorch_python.so*"
+      - "*/libpython3.11.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ninja
+    - cmake <4
+    - make
+    - pkg-config
+    - git
+  host:
+    - python 3.11.*
+    - setuptools
+    - pip
+    - pybind11
+    # CUDA (minimal)
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+    # Compile-time deps
+    - pytorch-gpu >=2.8.0
+    - torchvision
+    - eigen
+    - numpy
+    - opencv
+    - tqdm
+    - einops
+    - kornia
+    - yacs
+    # These are needed at build time (cloned and installed in build.sh)
+    - Pillow
+    - huggingface_hub
+    - safetensors
+    - hydra-core
+    - omegaconf
+    - scipy
+    - onnxruntime
+    - requests
+    - trimesh
+    - matplotlib
+    - gradio
+    - viser
+    - open3d
+    - pytorch-metric-learning
+    - pytorch-lightning
+    - termcolor
+    - lz4
+    - gtsam
+    - virtualenv >=20.10.0
+  run:
+    - python 3.11.*
+    - pytorch-gpu >=2.8.0
+    - torchvision
+    - opencv
+    - evo
+    - yacs
+    - einops
+    - numba
+    - tqdm
+    - viser
+    - termcolor
+
+tests:
+  - python:
+      imports:
+        - vggtslam
+
+about:
+  license: BSD-2-Clause
+  summary: VGGT-SLAM
+  homepage: https://github.com/MIT-SPARK/VGGT-SLAM
+  repository: https://github.com/VSLAM-LAB/VGGT-SLAM-VSLAM-LAB

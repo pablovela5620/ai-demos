@@ -1,0 +1,87 @@
+# rattler-build recipe for droidslam-vslamlab
+# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
+# Builds DROID-SLAM CUDA extensions (droid_backends) with Blackwell support.
+context:
+  name: droidslam-vslamlab
+  version: "1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  git: https://github.com/VSLAM-LAB/DROID-SLAM-VSLAM-LAB
+  rev: 9856bac50fe634e73ad29dc80ab39ca64c1fb46b
+
+build:
+  number: 0
+  skip:
+    - target_platform != "linux-64"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libc10.so*"
+      - "*/libc10_cuda.so*"
+      - "*/libtorch.so*"
+      - "*/libtorch_cpu.so*"
+      - "*/libtorch_cuda.so*"
+      - "*/libtorch_python.so*"
+      - "*/libpython3.11.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - pkg-config
+    - cmake
+    - make
+  host:
+    - python 3.11.*
+    - setuptools
+    - pip
+    # CUDA (minimal — torch.utils.cpp_extension finds the rest via PyTorch)
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+    # Only what's needed at compile time
+    - pytorch-gpu >=2.8.0
+    - lietorch
+    - eigen
+  run:
+    - python 3.11.*
+    - pytorch-gpu >=2.8.0
+    - lietorch
+    - tqdm
+    - open3d
+    - scipy
+    - opencv
+    - suitesparse
+    - matplotlib
+    - pyyaml
+    - huggingface_hub
+    - torch-scatter
+    - pandas
+    - eigen
+    - moderngl
+    - moderngl-window ==3.1.1
+    - torchvision
+    - tensorboard
+
+tests:
+  - python:
+      imports:
+        - droid_backends
+
+about:
+  license: BSD-3-Clause
+  summary: DROID-SLAM - Deep Visual SLAM for Monocular, Stereo, and RGB-D Cameras
+  homepage: https://github.com/princeton-vl/DROID-SLAM
+  repository: https://github.com/VSLAM-LAB/DROID-SLAM-VSLAM-LAB

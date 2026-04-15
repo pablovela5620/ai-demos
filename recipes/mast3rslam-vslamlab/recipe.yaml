@@ -1,0 +1,90 @@
+# rattler-build recipe for mast3rslam-vslamlab
+# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
+# Builds MASt3R-SLAM CUDA extensions with Blackwell support.
+context:
+  name: mast3rslam-vslamlab
+  version: "1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  git: https://github.com/VSLAM-LAB/MASt3R-SLAM-VSLAM-LAB
+  rev: f3b0b2e65eae854e220a7b5f8869a195d7bdc5eb
+
+build:
+  number: 0
+  skip:
+    - target_platform != "linux-64"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libc10.so*"
+      - "*/libc10_cuda.so*"
+      - "*/libtorch.so*"
+      - "*/libtorch_cpu.so*"
+      - "*/libtorch_cuda.so*"
+      - "*/libtorch_python.so*"
+      - "*/libpython3.11.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+      - "*/libGL.so*"
+      - "*/libEGL.so*"
+      - "*/libX11.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - pkg-config
+    - cmake
+    - make
+  host:
+    - python 3.11.*
+    - setuptools
+    - pip
+    # CUDA (minimal — torch.utils.cpp_extension provides the rest)
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+    # Only what's needed to compile CUDA extensions
+    - pytorch-gpu >=2.8.0
+    - lietorch
+    - eigen
+    - numpy <2
+  run:
+    - python 3.11.*
+    - pytorch-gpu >=2.8.0
+    - lietorch
+    - einops
+    - faiss
+    - moderngl-window
+    - roma
+    - huggingface_hub
+    - matplotlib
+    - natsort
+    - opencv
+    - plyfile
+    - pyglfw
+    - torchvision
+    - tqdm
+    - trimesh
+    - pandas
+
+tests:
+  - python:
+      imports:
+        - mast3r_slam
+
+about:
+  license: CC-BY-NC-SA-4.0
+  summary: MASt3R-SLAM Real-Time Dense SLAM with 3D Reconstruction Priors
+  homepage: https://edexheim.github.io/mast3r-slam
+  repository: https://github.com/VSLAM-LAB/MASt3R-SLAM-VSLAM-LAB

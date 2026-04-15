@@ -1,0 +1,83 @@
+# rattler-build recipe for monogs-vslamlab
+# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
+# Builds Gaussian splatting CUDA kernels (diff-gaussian-rasterization, simple-knn).
+# NOTE: MonoGS uses Python 3.10, not 3.11.
+context:
+  name: monogs-vslamlab
+  version: "1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  git: https://github.com/VSLAM-LAB/MonoGS-VSLAM-LAB
+  rev: b19f24b6c52812eeeb1551f04d5f1fc6e24881cf
+
+build:
+  number: 0
+  skip:
+    - target_platform != "linux-64"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libc10.so*"
+      - "*/libc10_cuda.so*"
+      - "*/libtorch.so*"
+      - "*/libtorch_cpu.so*"
+      - "*/libtorch_cuda.so*"
+      - "*/libtorch_python.so*"
+      - "*/libpython3.10.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ninja
+    - cmake <4
+    - make
+    - pkg-config
+  host:
+    - python 3.10.*
+    - setuptools
+    - pip
+    # CUDA (minimal)
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+    # Compile-time deps (only what's needed to build CUDA extensions)
+    - pytorch-gpu >=2.8.0
+    - numpy <2
+  run:
+    - python 3.10.*
+    - pytorch-gpu >=2.8.0
+    - torchvision
+    - wandb
+    - munch
+    - plyfile
+    - opencv
+    - pyglfw
+    - imgviz
+    - pyopengl
+    - pyglm
+    - rich
+    - evo
+    - torchmetrics
+
+tests:
+  - python:
+      imports:
+        - diff_gaussian_rasterization
+
+about:
+  summary: Gaussian Splatting SLAM
+  homepage: https://rmurai.co.uk/projects/GaussianSplattingSLAM/
+  repository: https://github.com/VSLAM-LAB/MonoGS-VSLAM-LAB

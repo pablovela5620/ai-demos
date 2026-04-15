@@ -1,0 +1,111 @@
+# rattler-build recipe for dpvo-vslamlab
+# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
+context:
+  name: dpvo-vslamlab
+  version: "1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  git: https://github.com/VSLAM-LAB/DPVO-VSLAM-LAB
+  rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
+
+build:
+  number: 0
+  skip:
+    - target_platform != "linux-64"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+      - "*/libcudart.so*"
+      - "*/libc10.so*"
+      - "*/libc10_cuda.so*"
+      - "*/libtorch.so*"
+      - "*/libtorch_cpu.so*"
+      - "*/libtorch_cuda.so*"
+      - "*/libtorch_python.so*"
+      - "*/libpython3.11.so*"
+      - "*/libc.so*"
+      - "*/libm.so*"
+      - "*/libgcc_s.so*"
+      - "*/libstdc++.so*"
+      - "*/ld-linux-*.so*"
+      - "*/libgomp.so*"
+      - "*/libGL.so*"
+      - "*/libEGL.so*"
+      - "*/libX11.so*"
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ninja
+    - cmake <4
+    - make
+    - pkg-config
+    - patchelf
+  host:
+    - python 3.11.*
+    - setuptools
+    - pip
+    - pybind11
+    # CUDA — DPViewer uses raw cmake + find_package(Torch) which needs
+    # the full CUDA toolkit (PyTorch's cmake config references CUDA:: targets)
+    - cuda-version 12.9.*
+    - cuda-cudart-dev
+    - cuda-crt
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-driver-dev
+    - libcublas-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcufile-dev
+    # X11 + OpenGL (needed for DPViewer pybind11 build)
+    - libgl-devel
+    - libegl-devel
+    - libglvnd-devel
+    - libopengl-devel
+    - xorg-libxext
+    - xorg-libx11
+    - xorg-libxfixes
+    - xorg-libxrender
+    - xorg-libice
+    - xorg-libsm
+    - xorg-libxdmcp
+    - xorg-libxau
+    - xorg-xorgproto
+    - libxkbcommon
+    - glew
+    - wayland
+    # Compile-time deps (DPViewer links against pangolin via pybind11)
+    - pangolin
+    - pytorch-gpu >=2.8.0
+    - eigen
+    - numpy
+  run:
+    - python 3.11.*
+    - pytorch-gpu >=2.8.0
+    - torchvision
+    - pytorch_scatter
+    - opencv
+    - evo
+    - yacs
+    - einops
+    - numba
+    - pangolin
+    - pypose
+
+tests:
+  - python:
+      imports:
+        - dpvo
+
+about:
+  license: MIT
+  summary: Deep Patch Visual Odometry/SLAM
+  homepage: https://github.com/princeton-vl/DPVO
+  repository: https://github.com/VSLAM-LAB/DPVO-VSLAM-LAB

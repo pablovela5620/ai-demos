@@ -1,0 +1,37 @@
+# rattler-build recipe for pypose
+# Pure Python Lie group / robotics library built on PyTorch.
+# GPU acceleration comes from PyTorch — pypose has no C++/CUDA extensions.
+context:
+  version: "0.7.3"
+
+package:
+  name: pypose
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/p/pypose/pypose-${{ version }}.tar.gz
+  sha256: 49beee40a21af5a9ba6e61829fe5302e0696bd378d8ef9de3db9d2b4c05b8b15
+
+build:
+  number: 0
+  noarch: python
+  script: pip install . --no-deps -v
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+    - setuptools
+  run:
+    - python >=3.6
+
+tests:
+  - python:
+      imports:
+        - pypose
+
+about:
+  homepage: https://github.com/pypose/pypose
+  license: MIT
+  summary: PyPose - A library for robot learning with Lie group support
+  repository: https://github.com/pypose/pypose

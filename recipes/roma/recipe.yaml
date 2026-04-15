@@ -1,0 +1,36 @@
+# rattler-build recipe for roma
+# Pure Python rotation library used by MASt3R-SLAM
+context:
+  version: "1.5.6"
+
+package:
+  name: roma
+  version: ${{ version }}
+
+source:
+  url: https://pypi.org/packages/source/r/roma/roma-${{ version }}.tar.gz
+  sha256: 986b3c1323592a50590c4566fa4dfd89f4855d6fa6f173268ec9e03bfdf553db
+
+build:
+  number: 0
+  noarch: python
+  script: pip install . --no-deps -v
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+    - setuptools
+  run:
+    - python >=3.6
+
+tests:
+  - python:
+      imports:
+        - roma
+
+about:
+  homepage: https://github.com/naver/roma
+  license: MIT
+  summary: Robust rotation averaging library for PyTorch
+  repository: https://github.com/naver/roma
