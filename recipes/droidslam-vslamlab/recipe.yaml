@@ -14,7 +14,7 @@ source:
   rev: 9856bac50fe634e73ad29dc80ab39ca64c1fb46b
 
 build:
-  number: 0
+  number: 1
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -37,6 +37,9 @@ build:
       - "*/libgomp.so*"
 
 requirements:
+  ignore_run_exports:
+    by_name:
+      - cuda-cudart
   build:
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
@@ -67,7 +70,7 @@ requirements:
     - matplotlib
     - pyyaml
     - huggingface_hub
-    - torch-scatter
+    - pytorch_scatter
     - pandas
     - eigen
     - moderngl

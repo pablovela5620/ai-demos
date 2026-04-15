@@ -14,7 +14,7 @@ source:
   rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
 
 build:
-  number: 0
+  number: 1
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -37,6 +37,9 @@ build:
       - "*/libgomp.so*"
 
 requirements:
+  ignore_run_exports:
+    by_name:
+      - cuda-cudart
   build:
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}

@@ -14,7 +14,7 @@ source:
   rev: f3b0b2e65eae854e220a7b5f8869a195d7bdc5eb
 
 build:
-  number: 0
+  number: 1
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -40,6 +40,9 @@ build:
       - "*/libX11.so*"
 
 requirements:
+  ignore_run_exports:
+    by_name:
+      - cuda-cudart
   build:
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
