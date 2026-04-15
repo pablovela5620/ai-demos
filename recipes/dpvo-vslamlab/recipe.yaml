@@ -15,7 +15,7 @@ source:
   rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
 
 build:
-  number: 0
+  number: 1
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -41,6 +41,37 @@ build:
       - "*/libX11.so*"
 
 requirements:
+  # Don't propagate CUDA toolkit / X11 / OpenGL run_exports to run deps.
+  # DPViewer links against PyTorch's CUDA libs, not directly against the toolkit.
+  ignore_run_exports:
+    by_name:
+      - cuda-cudart
+      - cuda-nvrtc
+      - cudnn
+      - libcublas
+      - libcufft
+      - libcurand
+      - libcufile
+      - libcusparse
+      - libcusolver
+      - libcudss
+      - cusparselt
+      - libnvjitlink
+      - libgl
+      - libegl
+      - libglvnd
+      - libopengl
+      - glew
+      - wayland
+      - xorg-libx11
+      - xorg-libxext
+      - xorg-libxfixes
+      - xorg-libxrender
+      - xorg-libice
+      - xorg-libsm
+      - xorg-libxdmcp
+      - xorg-libxau
+      - libxkbcommon
   build:
     - ${{ compiler('cuda') }}
     - ${{ compiler('cxx') }}
