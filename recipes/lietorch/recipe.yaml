@@ -13,7 +13,7 @@ source:
     - patches/pyproject.toml.patch
 
 build:
-  number: 0
+  number: 2
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -36,20 +36,23 @@ build:
       - "*/libgomp.so*"
 
 requirements:
+  ignore_run_exports:
+    by_name:
+      - cuda-cudart
   build:
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
   host:
     - python 3.11.*
     - setuptools
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - eigen >=3.4.0,<4
     - cuda-cudart-dev
     - cuda-crt
     - cuda-nvcc
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
 
 tests:
   - python:

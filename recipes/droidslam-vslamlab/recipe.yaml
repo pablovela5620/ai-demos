@@ -14,7 +14,7 @@ source:
   rev: 9856bac50fe634e73ad29dc80ab39ca64c1fb46b
 
 build:
-  number: 1
+  number: 2
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -55,12 +55,12 @@ requirements:
     - cuda-crt
     - cuda-nvcc
     # Only what's needed at compile time
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - lietorch
     - eigen
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - lietorch
     - tqdm
     - open3d

@@ -15,7 +15,7 @@ source:
   rev: b19f24b6c52812eeeb1551f04d5f1fc6e24881cf
 
 build:
-  number: 1
+  number: 2
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -57,11 +57,11 @@ requirements:
     - cuda-crt
     - cuda-nvcc
     # Compile-time deps (only what's needed to build CUDA extensions)
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - numpy <2
   run:
     - python 3.10.*
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - torchvision
     - wandb
     - munch

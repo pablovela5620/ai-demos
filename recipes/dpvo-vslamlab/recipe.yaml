@@ -15,7 +15,7 @@ source:
   rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
 
 build:
-  number: 1
+  number: 2
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -123,14 +123,14 @@ requirements:
     - wayland
     # Compile-time deps
     - pangolin
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - torchvision
     - eigen
     - numpy
     - opencv
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - torchvision
     - pytorch_scatter
     - opencv

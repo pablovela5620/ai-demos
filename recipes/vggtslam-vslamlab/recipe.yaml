@@ -14,7 +14,7 @@ source:
   rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
 
 build:
-  number: 1
+  number: 2
   skip:
     - target_platform != "linux-64"
   script: build.sh
@@ -58,7 +58,7 @@ requirements:
     - cuda-crt
     - cuda-nvcc
     # Compile-time deps
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - torchvision
     - eigen
     - numpy
@@ -89,7 +89,7 @@ requirements:
     - virtualenv >=20.10.0
   run:
     - python 3.11.*
-    - pytorch-gpu >=2.8.0
+    - pytorch-gpu >=2.8.0,<2.9
     - torchvision
     - opencv
     - evo
