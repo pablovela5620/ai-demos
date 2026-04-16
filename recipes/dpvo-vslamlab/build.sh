@@ -45,13 +45,9 @@ sed -i 's/^from torch_scatter import/from ..scatter_utils import/' dpvo/loop_clo
 
 # === Build ===
 
-# DPViewer uses cmake find_package(Torch) which calls cuda_select_nvcc_arch_flags
-# with TORCH_CUDA_ARCH_LIST. SM 12.0 isn't recognized by PyTorch's cmake module.
-# Use only known archs for the DPViewer cmake build.
+# DPVO and DPViewer don't hardcode gencode flags — they rely on
+# TORCH_CUDA_ARCH_LIST (needed for CI builds without a GPU).
 export TORCH_CUDA_ARCH_LIST="8.6;8.9;9.0;12.0"
-pip install ./DPViewer --no-deps --no-build-isolation --use-pep517
 
-# DPVO uses torch.utils.cpp_extension. PyTorch 2.8 doesn't support SM 12.0,
-# but 9.0+PTX provides forward compatibility for Blackwell via JIT.
-export TORCH_CUDA_ARCH_LIST="8.6;8.9;9.0;12.0"
+pip install ./DPViewer --no-deps --no-build-isolation --use-pep517
 pip install . --no-deps --no-build-isolation
