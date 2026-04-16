@@ -19,6 +19,9 @@ cmake -B build -S . -G Ninja \
   -DBUILD_EXAMPLES=OFF \
   -DBUILD_TESTS=OFF \
   -DBUILD_TOOLS=OFF \
+  -DPython_EXECUTABLE="$PYTHON" \
+  -DPython_INCLUDE_DIR="$PY_INC" \
+  -DPython_LIBRARY="$PY_LIB" \
   -DPython3_EXECUTABLE="$PYTHON" \
   -DPython3_INCLUDE_DIR="$PY_INC" \
   -DPython3_LIBRARY="$PY_LIB" \
