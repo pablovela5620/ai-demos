@@ -24,6 +24,7 @@ source:
     # - windows_python_fix_part_of_pr1685.patch
 
 build:
+  number: 1
   skip: target_platform != "linux-64"
 
 requirements:
