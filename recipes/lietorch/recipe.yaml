@@ -51,15 +51,8 @@ requirements:
   run:
     - python=3.11
     - pytorch-gpu >=2.10.0
-    #- tqdm
-    #- open3d
     - scipy
-    #- opencv
-    #- suitesparse
-    #- matplotlib
     - pyyaml
-    #- huggingface_hub
-    #- torch-scatter
 
 about:
   license: BSD-3-Clause
