@@ -11,7 +11,7 @@ source:
     rev: f3b0b2e65eae854e220a7b5f8869a195d7bdc5eb
 
 build:
-  number: 0
+  number: 1
   skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
 
 requirements:

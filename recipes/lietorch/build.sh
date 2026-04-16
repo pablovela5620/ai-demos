@@ -1,9 +1,11 @@
 #!/bin/bash
 set -euxo pipefail
 
-# PyTorch 2.8 doesn't support SM 12.0 (Blackwell) natively.
-# Build for 8.6/8.9/9.0 — Blackwell runs via PTX forward compatibility.
-export TORCH_CUDA_ARCH_LIST="8.6;8.9;9.0;12.0"
 export CONDA_PREFIX="$PREFIX"
+
+# Upstream lietorch hardcodes -gencode flags up to sm_86.
+# Extend with Ada (sm_89), Hopper (sm_90), Blackwell (sm_120),
+# plus compute_90 PTX for forward compatibility.
+sed -i "s|'-gencode=arch=compute_86,code=sm_86',|'-gencode=arch=compute_86,code=sm_86',\n                    '-gencode=arch=compute_89,code=sm_89',\n                    '-gencode=arch=compute_90,code=sm_90',\n                    '-gencode=arch=compute_90,code=compute_90',\n                    '-gencode=arch=compute_120,code=sm_120',|g" setup.py
 
 python setup.py install

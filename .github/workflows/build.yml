@@ -41,13 +41,16 @@ jobs:
           RATTLER_BUILD_COLOR: always
           CONDA_OVERRIDE_CUDA: "12"
         run: |
+          failed=0
           for recipe in roma moderngl-window pypose pangolin gtsam; do
             pixi run rattler-build build \
               -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
               -r "recipes/$recipe" \
+              --variant-config conda_build_config.yaml \
               --skip-existing=all --no-test \
-              --target-platform=$TARGET_PLATFORM || true
+              --target-platform=$TARGET_PLATFORM || failed=1
           done
+          exit $failed
 
       - name: Build CUDA baseline packages
         env:
@@ -56,13 +59,18 @@ jobs:
           RATTLER_BUILD_COLOR: always
           CONDA_OVERRIDE_CUDA: "12"
         run: |
+          # Sequential build: each recipe's output is available to the next
+          # via -c ./output (e.g. dpvo depends on pangolin from the dep step).
+          failed=0
           for recipe in lietorch droidslam-vslamlab mast3rslam-vslamlab dpvo-vslamlab monogs-vslamlab vggtslam-vslamlab; do
             pixi run rattler-build build \
               -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
               -r "recipes/$recipe" \
+              --variant-config conda_build_config.yaml \
               --skip-existing=all --no-test \
-              --target-platform=$TARGET_PLATFORM || true
+              --target-platform=$TARGET_PLATFORM || failed=1
           done
+          exit $failed
 
       - name: Check for packages
         id: check

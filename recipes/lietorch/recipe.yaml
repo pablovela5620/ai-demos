@@ -11,7 +11,7 @@ source:
     rev: 3e2695ddedb6f234510da4f1519d9861e5a1cd8e
 
 build:
-  number: 0
+  number: 1
   skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
 
 requirements:
@@ -51,15 +51,8 @@ requirements:
   run:
     - python=3.11
     - pytorch-gpu >=2.10.0
-    #- tqdm
-    #- open3d
     - scipy
-    #- opencv
-    #- suitesparse
-    #- matplotlib
     - pyyaml
-    #- huggingface_hub
-    #- torch-scatter
 
 about:
   license: BSD-3-Clause
