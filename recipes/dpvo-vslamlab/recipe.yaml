@@ -12,7 +12,7 @@ source:
 
 build:
   number: 1
-  skip: win or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
 
 requirements:
   build:

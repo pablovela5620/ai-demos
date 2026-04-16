@@ -45,7 +45,7 @@ jobs:
           CONDA_OVERRIDE_CUDA: "12"
         run: |
           pixi run rattler-build build \
-            -c https://prefix.dev/ai-demos -c conda-forge \
+            -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
             --recipe-dir recipes/ \
             --skip-existing=all --no-test \
             --target-platform=$TARGET_PLATFORM

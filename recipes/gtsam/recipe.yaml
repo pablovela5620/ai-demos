@@ -23,10 +23,8 @@ source:
     # - fix-missing-includes.patch
     # - windows_python_fix_part_of_pr1685.patch
 
-# build:
-#   number: 14
-#   run_exports:
-#     - '{{ pin_subpackage(name, max_pin="x.x") }}'
+build:
+  skip: target_platform != "linux-64"
 
 requirements:
   build:
