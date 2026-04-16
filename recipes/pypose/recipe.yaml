@@ -1,37 +1,74 @@
-# rattler-build recipe for pypose
-# Pure Python Lie group / robotics library built on PyTorch.
-# GPU acceleration comes from PyTorch — pypose has no C++/CUDA extensions.
 context:
-  version: "0.7.3"
+  version: 0.7.3
 
 package:
   name: pypose
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/p/pypose/pypose-${{ version }}.tar.gz
-  sha256: 49beee40a21af5a9ba6e61829fe5302e0696bd378d8ef9de3db9d2b4c05b8b15
+  - git: https://github.com/pypose/pypose.git
+    rev: 70da60d58529f649dfc33ff44af8fba2662d37f1
 
 build:
   number: 0
-  noarch: python
-  script: pip install . --no-deps -v
+  skip: win or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+  script: python -m pip install . --use-pep517 --no-deps -vv
 
 requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ninja
+    - cmake < 4
+    - make
+    - pkg-config  
   host:
-    - python >=3.6
-    - pip
+    # Python & Build Tools
+    - python = 3.11
     - setuptools
+    - pip
+
+    # Python core + DL
+    - pytorch-gpu >=2.10.0
+
+    # CUDA Toolkit Libraries
+    - cuda-version = ${{ cuda_compiler_version }}
+    - cuda-cudart-dev
+    - cuda-crt
+    - cudnn
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cusparselt
+    - libcublas-dev
+    - libcudss-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - libnvjitlink
+
   run:
-    - python >=3.6
+  - python = 3.11
+  - pytest 
+  - pytorch-gpu >=2.10.0
 
 tests:
-  - python:
-      imports:
-        - pypose
+- python:
+    imports:
+    - pypose
+    pip_check: true
 
 about:
-  homepage: https://github.com/pypose/pypose
-  license: MIT
-  summary: PyPose - A library for robot learning with Lie group support
+  homepage: https://pypose.org
+  summary: A library for differentiable robotics.
+  description: "## PyPose: A Library for Robot Learning with Physics-based Optimization\n\n![robot](https://user-images.githubusercontent.com/8695500/193484553-2da66824-4461-4aca-ad8c-b17c05bef067.png)\n\n-----\n\nDeep learning has had remarkable success in robotic perception, but its data-centric nature suffers when it comes to generalizing to ever-changing environments. By contrast, physics-based optimization generalizes better, but it does not perform as well in complicated tasks due to the lack of high-level semantic information and the reliance on manual parametric tuning. To take advantage of these two complementary worlds, we present PyPose: a **robotics-oriented**, **PyTorch-based** library that combines **deep perceptual models** with **physics-based optimization techniques**. Our design goal for PyPose is to make it **user-friendly**, **efficient**, and **interpretable** with a tidy and well-organized architecture. Using an **imperative style interface**, it can be easily integrated into **real-world robotic applications**. \n\n\n-----\n\n### Current Features\n\n##### [LieTensor](https://pypose.org/docs/main/modules/)\n\n- Lie group: [`SO3`](https://pypose.org/docs/main/generated/pypose.SO3/), [`SE3`](https://pypose.org/docs/main/generated/pypose.SE3/), [`Sim3`](https://pypose.org/docs/main/generated/pypose.Sim3/), [`RxSO3`](https://pypose.org/docs/main/generated/pypose.RxSO3/)\n- Lie algebra: [`so3`](https://pypose.org/docs/main/generated/pypose.so3/), [`se3`](https://pypose.org/docs/main/generated/pypose.se3/), [`sim3`](https://pypose.org/docs/main/generated/pypose.sim3/), [`rxso3`](https://pypose.org/docs/main/generated/pypose.rxso3/)\n\n##### [Modules](https://pypose.org/docs/main/modules/)\n\n- System: [`LTI`](https://pypose.org/docs/main/generated/pypose.module.LTI), [`LTV`](https://pypose.org/docs/main/generated/pypose.module.LTV), [`NLS`](https://pypose.org/docs/main/generated/pypose.module.NLS)\n- Filter: [`EKF`](https://pypose.org/docs/main/generated/pypose.module.EKF/), [`UKF`](https://pypose.org/docs/main/generated/pypose.module.UKF/), [`PF`](https://pypose.org/docs/main/generated/pypose.module.PF/)\n- PnP Solver: [`EPnP`](https://pypose.org/docs/main/generated/pypose.module.EPnP/)\n- Linear Quadratic Regulator: [`LQR`](https://pypose.org/docs/main/generated/pypose.module.LQR/)\n- IMU Preintegration: [`IMUPreintegrator`](https://pypose.org/docs/main/generated/pypose.module.IMUPreintegrator/)\n- ......\n\n##### [Second-order Optimizers](https://pypose.org/docs/main/optim/)\n\n- [`GaussNewton`](https://pypose.org/docs/main/generated/pypose.optim.GaussNewton)\n- [`LevenbergMarquardt`](https://pypose.org/docs/main/generated/pypose.optim.LevenbergMarquardt/)\n- ......\n\nWant more features? [Create an issue here](https://github.com/pypose/pypose/issues) to request new features.\n\n##### PyPose is highly efficient and supports parallel computing for Jacobian of Lie group and Lie algebra. See following comparison.\n\n<img width=\"1167\" alt=\"image\" src=\"https://user-images.githubusercontent.com/8695500/203210668-1a90224a-ae08-4d31-b9d1-e293be75ef3e.png\">\n\nEfficiency and memory comparison of batched Lie group operations (we take Theseus performance as 1×).\n\nMore information about efficiency comparison goes to [our paper for PyPose](https://arxiv.org/abs/2209.15428).\n\n## Getting Started\n    \n### Installation\n\n#### Install from **pypi**\n```bash\npip install pypose\n```\n\n#### Install from source\n\n1. Requirement:\n\nOn Ubuntu, macOS, or Windows, install [PyTorch](https://pytorch.org/), then run:\n\n```bash\npip install -r requirements/runtime.txt\n```\n\n2. Install locally:\n\n```bash\ngit clone  https://github.com/pypose/pypose.git\ncd pypose && python setup.py develop\n```\n\n3. Run tests\n\n```bash\npytest\n```\n\n####  For contributors\n\n1. Make sure the above installation is correct. \n\n2. Go to [CONTRIBUTING.md](CONTRIBUTING.md)\n\n\n#### Examples\n\n1. The following code sample shows how to rotate random points and compute the gradient of batched rotation.\n\n```python\n>>> import torch, pypose as pp\n\n>>> # A random so(3) LieTensor\n>>> r = pp.randn_so3(2, requires_grad=True)\n    so3Type LieTensor:\n    tensor([[ 0.1606,  0.0232, -1.5516],\n            [-0.0807, -0.7184, -0.1102]], requires_grad=True)\n\n>>> R = r.Exp() # Equivalent to: R = pp.Exp(r)\n    SO3Type LieTensor:\n    tensor([[ 0.0724,  0.0104, -0.6995,  0.7109],\n            [-0.0395, -0.3513, -0.0539,  0.9339]], grad_fn=<AliasBackward0>)\n\n>>> p = R @ torch.randn(3) # Rotate random point\n    tensor([[ 0.8045, -0.8555,  0.5260],\n            [ 0.3502,  0.8337,  0.9154]], grad_fn=<ViewBackward0>)\n\n>>> p.sum().backward()     # Compute gradient\n>>> r.grad                 # Print gradient\n    tensor([[-0.7920, -0.9510,  1.7110],\n            [-0.2659,  0.5709, -0.3855]])\n```\n\n2. This example shows how to estimate batched inverse of transform by a second-order optimizer. Two usage options for a `scheduler` are provided, each of which can work independently.\n\n```python\n>>> from torch import nn\n>>> import torch, pypose as pp\n>>> from pypose.optim import LM\n>>> from pypose.optim.strategy import Constant\n>>> from pypose.optim.scheduler import StopOnPlateau\n\n>>> class InvNet(nn.Module):\n\n        def __init__(self, *dim):\n            super().__init__()\n            init = pp.randn_SE3(*dim)\n            self.pose = pp.Parameter(init)\n\n        def forward(self, input):\n            error = (self.pose @ input).Log()\n            return error.tensor()\n\n>>> device = torch.device(\"cuda\")\n>>> input = pp.randn_SE3(2, 2, device=device)\n>>> invnet = InvNet(2, 2).to(device)\n>>> strategy = Constant(damping=1e-4)\n>>> optimizer = LM(invnet, strategy=strategy)\n>>> scheduler = StopOnPlateau(optimizer, steps=10, patience=3, decreasing=1e-3, verbose=True)\n\n>>> # 1st option, full optimization\n>>> scheduler.optimize(input=input)\n\n>>> # 2nd option, step optimization\n>>> while scheduler.continual():\n        loss = optimizer.step(input)\n        scheduler.step(loss)\n\n>>> # Note: remove one of the above options for usage!\n```\n\nFor more usage, see [Documentation](https://pypose.org/docs). For more applications, see [Examples](https://github.com/pypose/pypose/tree/main/examples).\n\n## Citing PyPose\n\nIf you use PyPose, please cite the paper below. You may also [download it here](https://arxiv.org/abs/2209.15428).\n\n```bibtex\n@inproceedings{wang2023pypose,\n  title = {{PyPose}: A Library for Robot Learning with Physics-based Optimization},\n  author = {Wang, Chen and Gao, Dasong and Xu, Kuan and Geng, Junyi and Hu, Yaoyu and Qiu, Yuheng and Li, Bowen and Yang, Fan and Moon, Brady and Pandey, Abhinav and Aryan and Xu, Jiahe and Wu, Tianhao and He, Haonan and Huang, Daning and Ren, Zhongqiang and Zhao, Shibo and Fu, Taimeng and Reddy, Pranay and Lin, Xiao and Wang, Wenshan and Shi, Jingnan and Talak, Rajat and Cao, Kun and Du, Yi and Wang, Han and Yu, Huai and Wang, Shanzhao and Chen, Siyu and Kashyap, Ananth  and Bandaru, Rohan and Dantu, Karthik and Wu, Jiajun and Xie, Lihua and Carlone, Luca and Hutter, Marco and Scherer, Sebastian},\n  booktitle = {IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},\n  year = {2023}\n}\n```\n\nMore papers describing PyPose:\n\n```bibtex\n@inproceedings{zhan2023pypose,\n  title = {{PyPose} v0.6: The Imperative Programming Interface for Robotics},\n  author = {Zitong Zhan and Xiangfu Li and Qihang Li and Haonan He and Abhinav Pandey and Haitao Xiao and Yangmengfei Xu and Xiangyu Chen and Kuan Xu and Kun Cao and Zhipeng Zhao and Zihan Wang and Huan Xu and Zihang Fang and Yutian Chen and Wentao Wang and Xu Fang and Yi Du and Tianhao Wu and Xiao Lin and Yuheng Qiu and Fan Yang and Jingnan Shi and Shaoshu Su and Yiren Lu and Taimeng Fu and Karthik Dantu and Jiajun Wu and Lihua Xie and Marco Hutter and Luca Carlone and Sebastian Scherer and Daning Huang and Yaoyu Hu and Junyi Geng and Chen Wang},\n  year = {2023},\n  booktitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) Workshop},\n}\n```\n"
   repository: https://github.com/pypose/pypose
+  documentation: https://pypose.org/docs

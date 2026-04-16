@@ -1,110 +1,74 @@
-# rattler-build recipe for dpvo-vslamlab
-# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10.
-# Uses ${{ compiler('cuda') }} + ${{ stdlib('c') }} for proper sysroot
-# setup (needed because DPViewer uses raw cmake + find_package(Torch)).
 context:
   name: dpvo-vslamlab
-  version: "1.0"
+  version: 1.0
 
 package:
-  name: ${{ name }}
+  name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  git: https://github.com/VSLAM-LAB/DPVO-VSLAM-LAB
-  rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
+  - git: https://github.com/VSLAM-LAB/DPVO-VSLAM-LAB
+    rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
 
 build:
-  number: 4
-  skip:
-    - target_platform != "linux-64"
-  script: build.sh
-  dynamic_linking:
-    missing_dso_allowlist:
-      - "*/libcuda.so*"
-      - "*/libcudart.so*"
-      - "*/libc10.so*"
-      - "*/libc10_cuda.so*"
-      - "*/libtorch.so*"
-      - "*/libtorch_cpu.so*"
-      - "*/libtorch_cuda.so*"
-      - "*/libtorch_python.so*"
-      - "*/libpython3.11.so*"
-      - "*/libc.so*"
-      - "*/libm.so*"
-      - "*/libgcc_s.so*"
-      - "*/libstdc++.so*"
-      - "*/ld-linux-*.so*"
-      - "*/libgomp.so*"
-      - "*/libGL.so*"
-      - "*/libEGL.so*"
-      - "*/libX11.so*"
+  number: 0
+  skip: win or cuda_compiler == "None" or cuda_compiler_version != "12.9"
 
 requirements:
-  # Don't propagate CUDA toolkit / X11 / OpenGL run_exports to run deps.
-  # DPViewer links against PyTorch's CUDA libs, not directly against the toolkit.
-  ignore_run_exports:
-    by_name:
-      - cuda-cudart
-      - cuda-nvrtc
-      - cudnn
-      - libcublas
-      - libcufft
-      - libcurand
-      - libcufile
-      - libcusparse
-      - libcusolver
-      - libcudss
-      - cusparselt
-      - libnvjitlink
-      - libgl
-      - libegl
-      - libglvnd
-      - libopengl
-      - glew
-      - wayland
-      - xorg-libx11
-      - xorg-libxext
-      - xorg-libxfixes
-      - xorg-libxrender
-      - xorg-libice
-      - xorg-libsm
-      - xorg-libxdmcp
-      - xorg-libxau
-      - libxkbcommon
   build:
     - ${{ compiler('cuda') }}
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ninja
-    - cmake <4
+    - cmake < 4
     - make
-    - pkg-config
+    - pkg-config  
+
   host:
-    - python 3.11.*
+    # Python & Build Tools
+    - python = 3.11
     - setuptools
     - pip
     - pybind11
-    # CUDA Toolkit (version locked by compiler('cuda') variant)
-    - cuda-version ==${{ cuda_compiler_version }}
+
+    # Python core + DL
+    - pangolin
+    - pypose
+    - pytorch-gpu >=2.10.0
+    - torchvision
+    - numba
+    - numpy
+    - tqdm
+    - einops   
+    - kornia    
+    - opencv
+    - yacs
+    - eigen
+
+    # CUDA Toolkit Libraries
+    - cuda-version = ${{ cuda_compiler_version }}
     - cuda-cudart-dev
     - cuda-crt
-    - cuda-nvrtc-dev
+    - cudnn
+    - libcusparse-dev
     - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
     - cuda-nvml-dev
     - cuda-profiler-api
-    - cudnn
+    - cusparselt
     - libcublas-dev
+    - libcudss-dev
+    - libcufile-dev
     - libcufft-dev
     - libcurand-dev
-    - libcufile-dev
-    - libcusparse-dev
     - libcusolver-dev
-    - libcudss-dev
-    - cusparselt
     - libnvjitlink
-    # X11 + OpenGL (needed for DPViewer pybind11 build)
+
+    # X11 + OpenGL
     - libgl-devel
     - libegl-devel
     - libglvnd-devel
@@ -121,33 +85,33 @@ requirements:
     - libxkbcommon
     - glew
     - wayland
-    # Compile-time deps
-    - pangolin
-    - pytorch-gpu >=2.8.0,<2.9
-    - torchvision
-    - eigen
-    - numpy
-    - opencv
+
+    # Logging / Evaluation
+    - tensorboard
+    - plyfile
+    - evo
+
   run:
-    - python 3.11.*
-    - pytorch-gpu >=2.8.0
     - torchvision
-    - pytorch_scatter
-    - opencv
+    - pytorch_scatter 
+    - opencv 
     - evo
     - yacs
-    - einops
+    - einops 
     - numba
     - pangolin
     - pypose
 
-tests:
-  - python:
-      imports:
-        - dpvo
-
 about:
   license: MIT
+  license_file: LICENSE
   summary: Deep Patch Visual Odometry/SLAM
-  homepage: https://github.com/princeton-vl/DPVO
-  repository: https://github.com/VSLAM-LAB/DPVO-VSLAM-LAB
+  homepage: https://github.com/princeton-vl/DPVO?tab=readme-ov-file
+
+extra:
+  authors:
+    - Lahav Lipson
+    - Zachary Teed
+    - Jia Deng
+  recipe-maintainers:
+    - fontan

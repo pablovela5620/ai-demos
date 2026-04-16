@@ -1,21 +1,32 @@
-#!/bin/bash
-set -euxo pipefail
+set -e
 
-export TORCH_CUDA_ARCH_LIST="8.6;8.9;9.0;12.0"
-export CONDA_PREFIX="$PREFIX"
+# 1. Install Python dependencies
+#echo "Installing base requirements..."
+#pip3 install -r requirements.txt
 
-# 1. Clone and install Salad
+# 2. Clone and install Salad
 echo "Cloning and installing Salad..."
 git clone https://github.com/Dominic101/salad.git
 pip install ./salad --no-deps --no-build-isolation
 
-# 2. Clone and install VGGT
+# 3. Clone and install RAFT, RAFT is not used for optical flow by default
+# echo "Cloning and installing RAFT..."
+# git clone https://github.com/<omitted>/RAFT.git
+# pip install -e ./RAFT
+# cd RAFT
+# echo "Downloading RAFT models..."
+# ./download_models.sh
+# cd ..
+
+# 4. Clone and install VGGT
 echo "Cloning and installing VGGT..."
+#git clone https://github.com/facebookresearch/vggt.git
 git clone https://github.com/VSLAM-LAB/vggt-VSLAM-LAB.git vggt
 pip install ./vggt --no-deps --no-build-isolation
 
-# 3. Install current repo
+# 5. Install current repo in editable mode
 echo "Installing current repo..."
-pip install . --no-deps --no-build-isolation
+pip install .  --no-deps --no-build-isolation
 
 echo "Installation Complete"
+

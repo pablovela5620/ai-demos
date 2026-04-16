@@ -1,36 +1,55 @@
-# rattler-build recipe for roma
-# Pure Python rotation library used by MASt3R-SLAM
 context:
-  version: "1.5.6"
+  version: 1.5.2.1
 
 package:
   name: roma
   version: ${{ version }}
 
 source:
-  url: https://pypi.org/packages/source/r/roma/roma-${{ version }}.tar.gz
-  sha256: 986b3c1323592a50590c4566fa4dfd89f4855d6fa6f173268ec9e03bfdf553db
+- url: https://pypi.org/packages/source/r/roma/roma-${{ version }}.tar.gz
+  sha256: d3a51da1293953acbbb991ab6d47b826268a0112ca6835375b34e68cb88292a7
 
 build:
-  number: 0
+  script: ${{ PYTHON }} -m pip install .
   noarch: python
-  script: pip install . --no-deps -v
 
 requirements:
   host:
-    - python >=3.6
-    - pip
-    - setuptools
+  - python =3.11
+  #- wheel
+  - pytorch-gpu >=2.10.0
+  - python=3.11
+  - cuda-version==${{ cuda_compiler_version }}
+  - cuda-cudart-dev
+  - cuda-crt
+  - cudnn
+  - libcusparse-dev
+  - cuda-driver-dev
+  - cuda-nvcc
+  - cuda-nvrtc-dev
+  - cuda-nvtx-dev
+  - cuda-nvml-dev
+  - cuda-profiler-api
+  - cusparselt
+  - libcublas-dev
+  - libcudss-dev
+  - libcufile-dev
+  - libcufft-dev
+  - libcurand-dev
+  - libcusolver-dev
+  - pip
+  - setuptools 
   run:
-    - python >=3.6
+  - python=3.11
+  - pytorch-gpu >=2.10.0
 
 tests:
-  - python:
-      imports:
-        - roma
+- python:
+    imports:
+    - roma
+    pip_check: true
 
 about:
   homepage: https://github.com/naver/roma
-  license: MIT
-  summary: Robust rotation averaging library for PyTorch
-  repository: https://github.com/naver/roma
+  summary: A lightweight library to deal with 3D rotations in PyTorch.
+  description: "# *RoMa*: A lightweight library to deal with 3D rotations in PyTorch.\n[![Documentation](https://img.shields.io/badge/Documentation--33cb56)](https://naver.github.io/roma/)\n[![PyPI version](https://badge.fury.io/py/roma.svg)](https://badge.fury.io/py/roma)\n[![ArXiv](https://img.shields.io/badge/arXiv-2103.16317-33cb56)](https://arxiv.org/abs/2103.16317)\n[![Unit tests](https://github.com/naver/roma/actions/workflows/main.yml/badge.svg)](https://github.com/naver/roma/actions/workflows/main.yml)\n[![Downloads](https://static.pepy.tech/badge/roma)](https://pepy.tech/project/roma)\n\n*RoMa* (which stands for Rotation Manipulation) provides differentiable mappings between 3D rotation representations, mappings from Euclidean to rotation space, and various utilities related to rotations.\n\nIt is implemented in PyTorch and aims to be an easy-to-use and reasonably efficient toolbox for Machine Learning and gradient-based optimization.\n\n## Documentation\nLatest documentation is available here: https://naver.github.io/roma/.\n\nBelow are some examples of use of *RoMa*:\n```python\nimport torch\nimport roma\n\n# Arbitrary numbers of batch dimensions are supported, for convenience.\nbatch_shape = (2, 3)\n\n# Conversion between rotation representations\nrotvec = torch.randn(batch_shape + (3,))\nq = roma.rotvec_to_unitquat(rotvec)\nR = roma.unitquat_to_rotmat(q)\nRbis = roma.rotvec_to_rotmat(rotvec)\neuler_angles = roma.unitquat_to_euler('xyz', q, degrees=True)\n\n# Regression of a rotation from an arbitrary input:\n# Special Procrustes orthonormalization of a 3x3 matrix\nR1 = roma.special_procrustes(torch.randn(batch_shape + (3, 3)))\n# Conversion from a 6D representation\nR2 = roma.special_gramschmidt(torch.randn(batch_shape + (3, 2)))\n# From the 10 coefficients of a 4x4 symmetric matrix\nq = roma.symmatrixvec_to_unitquat(torch.randn(batch_shape + (10,)))\n\n# Metrics on the rotation space\nR1, R2 = roma.random_rotmat(size=5), roma.random_rotmat(size=5)\ntheta = roma.utils.rotmat_geodesic_distance(R1, R2)\ncos_theta = roma.utils.rotmat_cosine_angle(R1.transpose(-2, -1) @ R2)\n\n# Operations on quaternions\nq_identity = roma.quat_product(roma.quat_conjugation(q), q)\n\n# Spherical interpolation between rotation vectors (shortest path)\nrotvec0, rotvec1 = torch.randn(batch_shape + (3,)), torch.randn(batch_shape + (3,))\nrotvec_interpolated = roma.rotvec_slerp(rotvec0, rotvec1, steps)\n\n# Rigid transformation T composed of a rotation part R and a translation part t\nt = torch.randn(batch_shape + (3,))\nT = roma.Rigid(R, t)\n# Composing and inverting transformations\nidentity = T @ T.inverse()\n# Casting the result to a batch of 4x4 homogeneous matrices\nM = identity.to_homogeneous()\n```\n\n## Installation\nThe easiest way to install *RoMa* is to use pip:\n```\npip install roma\n```\n\nAlternatively one can install the latest version of *RoMa* directly from the source repository:\n```\npip install git+https://github.com/naver/roma\n```\n\n**With old pytorch versions (torch<1.8)**, we recommend installing [torch-batch-svd](https://github.com/KinglittleQ/torch-batch-svd)\nto achieve a significant speed-up with `special_procrustes` on CUDA GPUs.\nYou can check that this module is properly loaded using the function `roma.utils.is_torch_batch_svd_available()`.\n**With recent pytorch installations (torch>=1.8), `torch-batch-svd` is no longer needed or used.**\n\n\n## License\n*RoMa*, Copyright (c) 2020 NAVER Corp., is licensed under the 3-Clause BSD License (see [license](https://github.com/naver/roma/blob/master/LICENSE)).\n\nBits of code were adapted from SciPy. Documentation is generated, distributed and displayed with the support of Sphinx and other materials (see [notice](https://github.com/naver/roma/blob/master/NOTICE)).\n\n## Contributing\nPlease open an issue on GitHub if you have any suggestions.\nPull requests are also welcome.\nWe aim at keeping RoMa reliable and maintainable, and may accept contribution (whether submitted as suggestions or pull requests) at our discretion to that aim.\n\nBy contributing to RoMa, you are agreeing that your contributions (whether suggestions or pull requests) for which you have the right or authority to submit are licensed under its [LICENSE](https://github.com/naver/roma/blob/master/LICENSE).\n\n## References\nFor a more in-depth discussion regarding differentiable mappings on the rotation space, please refer to:\n- [__Romain Brégier, Deep Regression on Manifolds: a 3D Rotation Case Study.__ in _2021 International Conference on 3D Vision (3DV)_, 2021.](https://arxiv.org/abs/2103.16317)\n\nPlease cite this work in your publications:\n```\n@inproceedings{bregier2021deepregression,\n\ttitle={Deep Regression on Manifolds: a {3D} Rotation Case Study},\n\tauthor={Br{\\'e}gier, Romain},\n\tjournal={2021 International Conference on 3D Vision (3DV)},\n\tyear={2021}\n}\n```\n\n"

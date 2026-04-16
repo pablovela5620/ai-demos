@@ -1,112 +1,85 @@
-# rattler-build recipe for vggtslam-vslamlab
-# Adapted from VSLAM-LAB/conda-packages for CUDA 12.9 + PyTorch 2.10
-# NOTE: build.sh clones external git repos (salad, vggt) during build.
 context:
   name: vggtslam-vslamlab
-  version: "1.0"
+  version: 1.0
 
 package:
-  name: ${{ name }}
+  name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  git: https://github.com/VSLAM-LAB/VGGT-SLAM-VSLAM-LAB
-  rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
+  - git: https://github.com/VSLAM-LAB/VGGT-SLAM-VSLAM-LAB
+    rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
 
 build:
-  number: 3
-  skip:
-    - target_platform != "linux-64"
-  script: build.sh
-  dynamic_linking:
-    missing_dso_allowlist:
-      - "*/libcuda.so*"
-      - "*/libcudart.so*"
-      - "*/libc10.so*"
-      - "*/libc10_cuda.so*"
-      - "*/libtorch.so*"
-      - "*/libtorch_cpu.so*"
-      - "*/libtorch_cuda.so*"
-      - "*/libtorch_python.so*"
-      - "*/libpython3.11.so*"
-      - "*/libc.so*"
-      - "*/libm.so*"
-      - "*/libgcc_s.so*"
-      - "*/libstdc++.so*"
-      - "*/ld-linux-*.so*"
-      - "*/libgomp.so*"
+  number: 0
+  skip: win or cuda_compiler == "None" or cuda_compiler_version != "12.9"
 
 requirements:
-  ignore_run_exports:
-    by_name:
-      - cuda-cudart
   build:
+    - ${{ compiler('cuda') }}
     - ${{ compiler('cxx') }}
     - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
     - ninja
-    - cmake <4
+    - cmake < 4
     - make
-    - pkg-config
-    - git
+    - pkg-config  
+
   host:
-    - python 3.11.*
+    # Python & Build Tools
+    - python = 3.11
     - setuptools
     - pip
-    - pybind11
-    # CUDA (minimal)
+
+    # Only what's needed to compile (pip install --no-deps --no-build-isolation)
+    - pytorch-gpu >=2.10.0
+    - numpy
+    - eigen
+
+    # CUDA Toolkit Libraries
+    - cuda-version = ${{ cuda_compiler_version }}
     - cuda-cudart-dev
     - cuda-crt
+    - cudnn
+    - libcusparse-dev
+    - cuda-driver-dev
     - cuda-nvcc
-    # Compile-time deps
-    - pytorch-gpu >=2.8.0,<2.9
-    - torchvision
-    - eigen
-    - numpy
-    - opencv
-    - tqdm
-    - einops
-    - kornia
-    - yacs
-    # These are needed at build time (cloned and installed in build.sh)
-    - Pillow
-    - huggingface_hub
-    - safetensors
-    - hydra-core
-    - omegaconf
-    - scipy
-    - onnxruntime
-    - requests
-    - trimesh
-    - matplotlib
-    - gradio
-    - viser
-    - open3d
-    - pytorch-metric-learning
-    - pytorch-lightning
-    - termcolor
-    - lz4
-    - gtsam
-    - virtualenv >=20.10.0
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cusparselt
+    - libcublas-dev
+    - libcudss-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - libnvjitlink
+
   run:
-    - python 3.11.*
-    - pytorch-gpu >=2.8.0
     - torchvision
-    - opencv
+    - pytorch_scatter 
+    - opencv 
     - evo
     - yacs
-    - einops
-    - numba
+    - einops 
+    - numba >=0.59
     - tqdm
     - viser
     - termcolor
-
-tests:
-  - python:
-      imports:
-        - vggtslam
 
 about:
   license: BSD-2-Clause
+  license_file: LICENSE
   summary: VGGT-SLAM
   homepage: https://github.com/MIT-SPARK/VGGT-SLAM
-  repository: https://github.com/VSLAM-LAB/VGGT-SLAM-VSLAM-LAB
+
+extra:
+  authors:
+    - Dominic Maggio
+    - Hyungtae Lim
+    - Luca Carlone
+  recipe-maintainers:
+    - fontan
