@@ -11,7 +11,7 @@ source:
     rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
 
 build:
-  number: 0
+  number: 1
   skip: win or cuda_compiler == "None" or cuda_compiler_version != "12.9"
 
 requirements:
@@ -59,8 +59,7 @@ requirements:
 
   run:
     - torchvision
-    - pytorch_scatter 
-    - opencv 
+    - opencv
     - evo
     - yacs
     - einops 

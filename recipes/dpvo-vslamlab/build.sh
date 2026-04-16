@@ -25,6 +25,24 @@ if [ ! -f "$TORCH_LIB/libkineto.a" ]; then
   "$AR" rcs "$TORCH_LIB/libkineto.a" /tmp/kineto_stub.o
 fi
 
+# === Remove pytorch_scatter: inject pure-PyTorch scatter_utils ===
+cp "$RECIPE_DIR/scatter_utils.py" dpvo/scatter_utils.py
+
+# dpvo/net.py: import torch_scatter → from . import scatter_utils as torch_scatter
+#              from torch_scatter import → from .scatter_utils import
+sed -i 's/^import torch_scatter$/from . import scatter_utils as torch_scatter/' dpvo/net.py
+sed -i 's/^from torch_scatter import/from .scatter_utils import/' dpvo/net.py
+
+# dpvo/blocks.py: import torch_scatter → from . import scatter_utils as torch_scatter
+# (preserves torch_scatter.scatter_softmax() / torch_scatter.scatter_sum() call syntax)
+sed -i 's/^import torch_scatter$/from . import scatter_utils as torch_scatter/' dpvo/blocks.py
+
+# dpvo/ba.py: from torch_scatter import → from .scatter_utils import
+sed -i 's/^from torch_scatter import/from .scatter_utils import/' dpvo/ba.py
+
+# dpvo/loop_closure/long_term.py: two-level relative import (loop_closure/ → dpvo/)
+sed -i 's/^from torch_scatter import/from ..scatter_utils import/' dpvo/loop_closure/long_term.py
+
 # === Build ===
 
 # DPViewer uses cmake find_package(Torch) which calls cuda_select_nvcc_arch_flags
