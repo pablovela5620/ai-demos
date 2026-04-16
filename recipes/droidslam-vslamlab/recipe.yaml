@@ -11,10 +11,9 @@ source:
     rev: 9856bac50fe634e73ad29dc80ab39ca64c1fb46b
 
 build:
-  number: 0
+  number: 1
   skip: win or cuda_compiler == "None" or cuda_compiler_version != "12.9"
-  script:
-   - python -m pip install . --no-deps --no-build-isolation
+  script: build.sh
     
 requirements:
   build:
@@ -45,7 +44,6 @@ requirements:
     # CUDA Libraries
     - cudnn
     - libcublas-dev
-    - libcudss-dev
     - libcufile-dev
     - libcufft-dev
     - libcurand-dev
@@ -73,7 +71,7 @@ requirements:
     - matplotlib
     - pyyaml
     - huggingface_hub
-    - torch-scatter
+    - pytorch_scatter
     - lietorch
     - pandas
     - eigen

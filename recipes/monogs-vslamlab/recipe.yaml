@@ -51,7 +51,6 @@ requirements:
     - cuda-profiler-api
     - cudnn
     - libcublas-dev
-    - libcudss-dev
     - libcufile-dev
     - libcufft-dev
     - libcurand-dev
