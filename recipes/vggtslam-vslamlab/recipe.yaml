@@ -1,0 +1,83 @@
+context:
+  name: vggtslam-vslamlab
+  version: 1.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - git: https://github.com/VSLAM-LAB/VGGT-SLAM-VSLAM-LAB
+    rev: db1698e78bc246f15f1fd6581d6a16d2a154b434
+
+build:
+  number: 1
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+
+requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ninja
+    - cmake < 4
+    - make
+    - pkg-config  
+
+  host:
+    # Python & Build Tools
+    - python = 3.11
+    - setuptools
+    - pip
+
+    # Only what's needed to compile (pip install --no-deps --no-build-isolation)
+    - pytorch-gpu >=2.10.0
+    - numpy
+    - eigen
+
+    # CUDA Toolkit Libraries
+    - cuda-version = ${{ cuda_compiler_version }}
+    - cuda-cudart-dev
+    - cuda-crt
+    - cudnn
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cusparselt
+    - libcublas-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - libnvjitlink
+
+  run:
+    - torchvision
+    - opencv
+    - evo
+    - yacs
+    - einops 
+    - numba >=0.59
+    - tqdm
+    - viser
+    - termcolor
+
+about:
+  license: BSD-2-Clause
+  license_file: LICENSE
+  summary: VGGT-SLAM
+  homepage: https://github.com/MIT-SPARK/VGGT-SLAM
+
+extra:
+  authors:
+    - Dominic Maggio
+    - Hyungtae Lim
+    - Luca Carlone
+  recipe-maintainers:
+    - fontan

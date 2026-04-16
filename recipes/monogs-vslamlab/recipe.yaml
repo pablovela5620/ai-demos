@@ -1,0 +1,106 @@
+context:
+  name: monogs-vslamlab
+  version: 1.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - git: https://github.com/VSLAM-LAB/MonoGS-VSLAM-LAB
+    rev: b19f24b6c52812eeeb1551f04d5f1fc6e24881cf
+
+build:
+  number: 0
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+
+requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ninja
+    - cmake < 4
+    - make
+    - pkg-config  
+
+  host:
+    # Python & Build Tools
+    - python = 3.10
+    - setuptools
+    - pip
+    
+    # Python core + DL
+    - pytorch-gpu >=2.10.0
+    - torchvision 
+    - numpy < 2
+    - opencv
+
+    # CUDA Toolkit Libraries
+    - cuda-version = ${{ cuda_compiler_version }}
+    - cuda-cudart-dev
+    - cuda-crt
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cudnn
+    - libcublas-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - cusparselt
+    - libnvjitlink
+   
+    # Logging / Evaluation
+    - plyfile
+    - evo
+    - munch
+    - trimesh
+    - wandb
+    - torchmetrics
+    - imgviz
+    - pyopengl
+    - glfw
+    - pyglm
+    - lpips
+    - rich
+    - ruff
+    - pyglfw
+    - nbformat = 5.7.0
+  run:
+    - python = 3.10
+    - pytorch-gpu >=2.10.0
+    - torchvision 
+    - wandb
+    - munch
+    - plyfile
+    - opencv
+    - pyglfw
+    - imgviz
+    - pyopengl
+    - pyglm
+    - rich
+    - evo
+    - torchmetrics
+
+about:
+  #license: LicenseRef-Imperial-MonoGS
+  #license_file: LICENSE.md
+  summary: Gaussian Splatting SLAM 
+  homepage: https://rmurai.co.uk/projects/GaussianSplattingSLAM/
+
+extra:
+  authors:
+    - Hidenobu Matsuki
+    - Riku Murai
+    - Paul H.J. Kelly 
+    - Andrew J. Davison
+  recipe-maintainers:
+    - fontan

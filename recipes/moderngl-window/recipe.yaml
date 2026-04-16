@@ -1,0 +1,65 @@
+context:
+  version: 2.4.6
+
+package:
+  name: moderngl-window
+  version: ${{ version }}
+
+source:
+- url: https://files.pythonhosted.org/packages/36/36/4823988c2155974a334753bfeef9c772d7b49b7f5c01f3e8a44c3813781c/moderngl-window-${{ version }}.tar.gz
+  sha256: db9b4c27f35faa6f243b6d8cde6ada6da6e79541d62b8e536c0b20da29720c32
+
+build:
+  script: ${{ PYTHON }} -m pip install .
+  noarch: python
+
+requirements:
+  host:
+    - python = 3.11
+    - pip
+    - numpy <2
+    - pyrr
+  run:
+    - python = 3.11
+    - moderngl <6
+    - pyglet >=2.0.0
+    - numpy <2
+    - pyglm >=2.7.0,<3
+    - pillow >=10.0.1
+    - pyrr
+  # - pytest  # extra == "dev"
+  # - mypy  # extra == "dev"
+  # - coverage  # extra == "dev"
+  # - pywavefront  # extra == "dev"
+  # - trimesh  # extra == "dev"
+  # - scipy  # extra == "dev"
+  # - build  # extra == "dev"
+  # - ruff  # extra == "dev"
+  # - sphinx ~=8.1.3 # extra == "docs"
+  # - sphinx-rtd-theme ~=3.0.1 # extra == "docs"
+  # - sphinx-rtd-dark-mode ==1.3.0 # extra == "docs"
+  # - doc8  # extra == "docs"
+  # - imgui-bundle  # extra == "imgui"
+  # - pygame >=2.0.1 # extra == "pygame"
+  # - pygame-ce >=2.0.1 # extra == "pygame-ce"
+  # - pyopengltk >=0.0.3 # extra == "tk"
+  # - trimesh >=3.2.6 # extra == "trimesh"
+  # - pywavefront <2,>=1.2.0 # extra == "pywavefront"
+  # - pysdl2  # extra == "pysdl2"
+  # - glfw  # extra == "glfw"
+  # - pyqt5  # extra == "pyqt5"
+  # - pyside2 <6 # extra == "pyside2"
+  # - reportlab >=1.2 # extra == "pdf"
+  # - av  # extra == "av"
+  # - dracopy  # extra == "draco"
+
+tests:
+- python:
+    imports:
+    - moderngl_window
+    pip_check: true
+
+about:
+  summary: A cross platform helper library for ModernGL making window creation and resource loading simple
+  description: "[![pypi](https://badge.fury.io/py/moderngl-window.svg)](https://pypi.python.org/pypi/moderngl-window) [![rtd](https://readthedocs.org/projects/moderngl-window/badge/?version=latest)](https://moderngl-window.readthedocs.io)\r\n\r\n# moderngl-window\r\n\r\nA cross platform utility library for [ModernGL](https://github.com/moderngl/moderngl) making window\r\ncreation and resource loading simple. It can also be used with PyOpenGL for\r\nrendering with the programmable pipeline.\r\n\r\n* [moderngl-window Documentation](https://moderngl-window.readthedocs.io)\r\n* [moderngl-window on PyPI](https://pypi.org/project/moderngl-window)\r\n* [moderngl-window on Github](https://github.com/moderngl/moderngl-window)\r\n* [ModernGL](https://github.com/moderngl/moderngl)\r\n* [ModernGL Discord Server](https://discord.gg/UEMtW8D)\r\n\r\nPlease report bugs or post questions/feedback on [github](https://github.com/moderngl/moderngl-window/issues).\r\n\r\n## Features\r\n\r\n* Cross platform support. Tested on Windows 10, Linux and Mac OS X.\r\n  This can save users a lot of time and is often more difficult than most people\r\n  imagine it to be.\r\n* Easily create a window for ModernGL using pyglet, pygame, PySide2, GLFW, SDL2, PyQt5\r\n  or tkinter supporting a wide range of window, keyboard and mouse events.\r\n  These events are unified into a single system so your project can work with any window.\r\n* Load 2D textures, texture arrays and cube maps using Pillow\r\n* Load shaders as single or multiple `glsl` files\r\n* Load objects/scenes from wavefront/obj, GLTF 2.0 or STL\r\n* Resource finder system supporting multiple resource directories\r\n* A highly plugable library supporting custom loaders,\r\n  resource finders and windows.\r\n* Type hints everywhere making code completion and linting a breeze\r\n\r\nWe are not trying to force the user into using every aspect of this\r\nlibrary. If you have an exiting project and just need texture loading\r\nyou will be able to do this without unnecessary hurdles as long as\r\nyou provide us your `moderngl.Context`.\r\n\r\n## Install\r\n\r\n```bash\r\npip install moderngl-window\r\n```\r\n\r\n## Supported Platforms\r\n\r\n* [x] Windows\r\n* [x] Linux\r\n* [x] Mac OS X\r\n\r\n## Sample Usage\r\n\r\nSimple example opening a window clearing every frame using red (color).\r\n\r\n```py\r\n# test.py\r\nimport moderngl_window as mglw\r\n\r\nclass Test(mglw.WindowConfig):\r\n    gl_version = (3, 3)\r\n\r\n    def on_render(self, time: float, frametime: float):\r\n        self.ctx.clear(1.0, 0.0, 0.0, 0.0)\r\n\r\nTest.run()\r\n```\r\n\r\nRun the example with different window backends:\r\n\r\n```bash\r\npython test.py --window pyglet\r\npython test.py --window pygame2\r\npython test.py --window glfw\r\npython test.py --window sdl2\r\npython test.py --window pyside2\r\npython test.py --window pyqt5\r\npython test.py --window tk\r\n```\r\n\r\n`WindowConfig` classes are the simplest way to get started without knowing\r\na lot about this library. For more advanced usage see documentation\r\nor examples.\r\n\r\n## Setup from source\r\n\r\nWe assume the user knows how to handle virtualenvs.\r\n\r\n```bash\r\n# Install the package in editable mode\r\n$ pip install -e .\r\n\r\n# Install development requirements\r\n$ pip install -e .[dev]\r\n```\r\n\r\n## Running Tests\r\n\r\nWith dev requirements installed:\r\n\r\n```bash\r\npython make.py test\r\n```\r\n\r\n## Building Docs\r\n\r\n```bash\r\npip install -e .[dev]\r\npython make.py html\r\n```\r\n\r\n## Contributing\r\n\r\nContributions are welcome regardless of experience level.\r\nDon't hesitate submitting issues, opening partial or completed\r\npull requests.\r\n\r\n### Plugins\r\n\r\nWe are interested in contributions providing new loaders, windows etc.\r\nFor these to be included in this library we require them\r\nto work cross platforms (win10/linux/osx) and be fairly easy to set up.\r\n\r\nIf it requires more than manually downloading a pre-compiled dll\r\n(like SDL2, GLFW etc.) it would most likely not be included,\r\nbut you are welcome to present your case if you still think it should\r\nbe included.\r\n\r\nIf you create your own repo/package containing plugins for\r\nthis library, please make an issue and we'll link back to it.\r\nBe sure to include what platforms are supported, install\r\ninstructions, how you configure it in `moderngl-window` and\r\nof course a clear and concise description of what exactly\r\nyour package provides.\r\n\r\n## Citation\r\n\r\nIf you need to cite this repository in academic research:\r\n\r\n```txt\r\n@Online{Forselv2020,\r\n  author = {Einar Forselv},\r\n  title = {moderngl-window, a cross-platform windowing/utility library for ModernGL},\r\n  date = {2020-05-01},\r\n  publisher = {GitHub},\r\n  journal = {GitHub repository},\r\n  howpublished = {\\url{https://github.com/moderngl/moderngl-window}},\r\n  commit = {<insert hash if needed>}\r\n}\r\n```\r\n\r\nIf commit hash is required this can be found per release here:\r\n<https://github.com/moderngl/moderngl-window/releases>\r\n\r\n## Attributions\r\n\r\nWe can't build everything from scratch. We rely on certain packages\r\nand resources to make this project possible.\r\n\r\n### Windows\r\n\r\n* pyglet (<https://github.com/pyglet/pyglet>)\r\n* pygame (<https://github.com/pygame/pygame>)\r\n* pyGLFW (<https://github.com/FlorianRhiem/pyGLFW>)\r\n* PySDL2 (<https://github.com/marcusva/py-sdl2>)\r\n* PySide2 (<https://wiki.qt.io/Qt_for_Python>)\r\n* PyQt5 (<https://www.riverbankcomputing.com/software/pyqt/intro>)\r\n* tkinter (<https://github.com/jonwright/pyopengltk>)\r\n\r\n### Loaders\r\n\r\n* Pillow (<https://python-pillow.org/>)\r\n* pywavefront (<https://github.com/pywavefront/PyWavefront>)\r\n* trimesh (<https://github.com/mikedh/trimesh>)\r\n\r\n### Testing & Utility\r\n\r\n* PyGLM (<https://github.com/Zuzu-Typ/PyGLM>)\r\n* ruff (<https://github.com/astral-sh/ruff>)\r\n* numpy (<https://github.com/numpy/numpy>)\r\n* pytest (<https://docs.pytest.org/en/latest/>)\r\n* coverage (<https://github.com/nedbat/coveragepy>)\r\n\r\n## Resources\r\n\r\n* NASA 3D Resources (<https://github.com/nasa/NASA-3D-Resources>)\r\n* glTF Sample Models (<https://github.com/KhronosGroup/glTF-Sample-Models>)\r\n\r\n## Some History\r\n\r\nThe majority of the code in this library comes from [demosys-py](https://github.com/Contraz/demosys-py) (somewhat modified).\r\nBecause `demosys-py` is a framework we decided to split out a lot useful functionality into this\r\nlibrary. Frameworks are a lot less appealing to users and it would be a shame to not make this\r\nmore available to the ModernGL user base.\r\n"
+  documentation: https://moderngl-window.readthedocs.io

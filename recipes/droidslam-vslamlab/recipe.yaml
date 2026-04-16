@@ -1,0 +1,94 @@
+context:
+  name: droidslam-vslamlab
+  version: 1.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - git: https://github.com/VSLAM-LAB/DROID-SLAM-VSLAM-LAB
+    rev: 9856bac50fe634e73ad29dc80ab39ca64c1fb46b
+
+build:
+  number: 2
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+  script: build.sh
+    
+requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - pkg-config  
+    - cmake
+    - make
+
+  host:
+    - python = 3.11
+    - setuptools
+    - pip
+    # CUDA Build Tools
+    - cuda-version ==${{ cuda_compiler_version }}
+    - cuda-cudart-dev
+    - cuda-crt
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    # CUDA Libraries
+    - cudnn
+    - libcublas-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - cusparselt
+    - libnvjitlink
+    # Torch libraries
+    - pytorch-gpu >=2.10.0
+    - lietorch
+    - pandas
+    - eigen
+    - moderngl
+    - moderngl-window == 3.1.1
+    - torchvision
+    - tensorboard
+    - opencv
+  run:
+    - python=3.11
+    - pytorch-gpu >=2.10.0
+    - tqdm
+    - open3d
+    - scipy
+    - opencv
+    - suitesparse
+    - matplotlib
+    - pyyaml
+    - huggingface_hub
+    - lietorch
+    - pandas
+    - eigen
+    - moderngl
+    - moderngl-window == 3.1.1
+    - torchvision
+    - tensorboard
+about:
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: Deep Visual SLAM for Monocular, Stereo, and RGB-D Cameras
+  description: |
+    This repo currently provides a single GPU implementation of our monocular, stereo, and RGB-D SLAM systems. It currently contains demos, training, and evaluation scripts.
+  homepage: https://github.com/princeton-vl/DROID-SLAM
+
+extra:
+  authors:
+    - Zachary Teed
+    - Jia Deng
+  recipe-maintainers:
+    - fontan

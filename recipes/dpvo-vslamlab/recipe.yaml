@@ -1,0 +1,115 @@
+context:
+  name: dpvo-vslamlab
+  version: 1.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - git: https://github.com/VSLAM-LAB/DPVO-VSLAM-LAB
+    rev: 5a767667bb3ac00025d7279218bb5088fe5c7c9f
+
+build:
+  number: 1
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+
+requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ninja
+    - cmake < 4
+    - make
+    - pkg-config  
+
+  host:
+    # Python & Build Tools
+    - python = 3.11
+    - setuptools
+    - pip
+    - pybind11
+
+    # Python core + DL
+    - pangolin
+    - pypose
+    - pytorch-gpu >=2.10.0
+    - torchvision
+    - numba
+    - numpy
+    - tqdm
+    - einops   
+    - kornia    
+    - opencv
+    - yacs
+    - eigen
+
+    # CUDA Toolkit Libraries
+    - cuda-version = ${{ cuda_compiler_version }}
+    - cuda-cudart-dev
+    - cuda-crt
+    - cudnn
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cusparselt
+    - libcublas-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - libnvjitlink
+
+    # X11 + OpenGL
+    - libgl-devel
+    - libegl-devel
+    - libglvnd-devel
+    - libopengl-devel
+    - xorg-libxext
+    - xorg-libx11
+    - xorg-libxfixes
+    - xorg-libxrender
+    - xorg-libice
+    - xorg-libsm
+    - xorg-libxdmcp
+    - xorg-libxau
+    - xorg-xorgproto
+    - libxkbcommon
+    - glew
+    - wayland
+
+    # Logging / Evaluation
+    - tensorboard
+    - plyfile
+    - evo
+
+  run:
+    - torchvision
+    - opencv
+    - evo
+    - yacs
+    - einops 
+    - numba
+    - pangolin
+    - pypose
+
+about:
+  license: MIT
+  license_file: LICENSE
+  summary: Deep Patch Visual Odometry/SLAM
+  homepage: https://github.com/princeton-vl/DPVO?tab=readme-ov-file
+
+extra:
+  authors:
+    - Lahav Lipson
+    - Zachary Teed
+    - Jia Deng
+  recipe-maintainers:
+    - fontan

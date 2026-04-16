@@ -1,0 +1,130 @@
+context:
+  name: mast3rslam-vslamlab
+  version: 1.0
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - git: https://github.com/VSLAM-LAB/MASt3R-SLAM-VSLAM-LAB
+    rev: f3b0b2e65eae854e220a7b5f8869a195d7bdc5eb
+
+build:
+  number: 0
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+
+requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - pkg-config  
+    - cmake
+    - make
+  host:
+    - python = 3.11
+    - setuptools
+    - pip
+    # OpenGL
+    - libgl-devel
+    - libegl-devel
+    - libglvnd-devel
+    - libopengl-devel
+    # X11
+    - xorg-libxext
+    - xorg-libx11
+    - xorg-libxfixes
+    - xorg-libxrender
+    - xorg-libice
+    - xorg-libsm
+    - xorg-libxdmcp
+    - xorg-libxau
+    - xorg-xorgproto
+    - libxkbcommon
+    # CUDA Build Tools
+    - cuda-version ==${{ cuda_compiler_version }}
+    - cuda-cudart-dev
+    - cuda-crt
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    # CUDA Libraries
+    - cudnn
+    - libcublas-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - cusparselt
+    - libnvjitlink
+    # Torch libraries
+    - pytorch-gpu >=2.10.0
+    - torchvision
+    - lietorch
+    - torchcodec
+    # Other
+    - eigen
+    - einops
+    - evo
+    - faiss
+    - gradio
+    - huggingface_hub
+    - librealsense
+    - matplotlib
+    - moderngl
+    - moderngl-window
+    - msgpack-python
+    - natsort
+    - numpy < 2
+    - opencv
+    - pillow
+    - plyfile
+    - pyaml
+    - pyglet
+    - pyglfw
+    - pyglm
+    - pykdtree
+    - roma
+    - safetensors
+    - scikit-learn
+    - scipy
+    - tensorboard
+    - tqdm
+    - trimesh
+    - pandas
+  run:
+    - einops
+    - faiss
+    - lietorch
+    - moderngl-window
+    - roma
+    - huggingface_hub
+    - matplotlib
+    - natsort
+    - opencv
+    - plyfile
+    - pyglfw 
+    - torchvision
+    - tqdm
+    - trimesh
+    - pandas
+
+about:
+  license: CC-BY-NC-SA-4.0
+  license_file: LICENSE.md
+  summary: MASt3R-SLAM Real-Time Dense SLAM with 3D Reconstruction Priors
+  homepage: https://edexheim.github.io/mast3r-slam
+
+extra:
+  authors:
+    - Riku Murai
+    - Eric Dexheimer
+    - Andrew Davison
+  recipe-maintainers:
+    - fontan

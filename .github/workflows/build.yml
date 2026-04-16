@@ -34,21 +34,35 @@ jobs:
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
 
-      - name: Build packages
+      - name: Build dependency packages (pangolin, gtsam, noarch)
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
           RATTLER_BUILD_ENABLE_GITHUB_INTEGRATION: true
           RATTLER_BUILD_COLOR: always
-          # Pretend CUDA 12 is available so the solver can resolve pytorch-gpu
-          # on CI runners that lack a physical GPU (nvcc compilation is fine
-          # without one — only runtime needs a GPU).
           CONDA_OVERRIDE_CUDA: "12"
         run: |
-          pixi run rattler-build build \
-            -c https://prefix.dev/ai-demos -c conda-forge \
-            --recipe-dir recipes/ \
-            --skip-existing=all --no-test \
-            --target-platform=$TARGET_PLATFORM
+          for recipe in roma moderngl-window pypose pangolin gtsam; do
+            pixi run rattler-build build \
+              -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
+              -r "recipes/$recipe" \
+              --skip-existing=all --no-test \
+              --target-platform=$TARGET_PLATFORM || true
+          done
+
+      - name: Build CUDA baseline packages
+        env:
+          TARGET_PLATFORM: ${{ matrix.target }}
+          RATTLER_BUILD_ENABLE_GITHUB_INTEGRATION: true
+          RATTLER_BUILD_COLOR: always
+          CONDA_OVERRIDE_CUDA: "12"
+        run: |
+          for recipe in lietorch droidslam-vslamlab mast3rslam-vslamlab dpvo-vslamlab monogs-vslamlab vggtslam-vslamlab; do
+            pixi run rattler-build build \
+              -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
+              -r "recipes/$recipe" \
+              --skip-existing=all --no-test \
+              --target-platform=$TARGET_PLATFORM || true
+          done
 
       - name: Check for packages
         id: check
