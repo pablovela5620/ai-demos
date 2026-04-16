@@ -19,6 +19,9 @@ cmake -B build -S . -G Ninja \
   -DBUILD_EXAMPLES=OFF \
   -DBUILD_TESTS=OFF \
   -DBUILD_TOOLS=OFF \
+  -DPython_EXECUTABLE="$PYTHON" \
+  -DPython_INCLUDE_DIR="$PY_INC" \
+  -DPython_LIBRARY="$PY_LIB" \
   -DPython3_EXECUTABLE="$PYTHON" \
   -DPython3_INCLUDE_DIR="$PY_INC" \
   -DPython3_LIBRARY="$PY_LIB" \
@@ -27,6 +30,9 @@ cmake -B build -S . -G Ninja \
 cmake --build build -j"${CPU_COUNT:-$(nproc)}"
 cmake --install build
 
-# Install the Python wheel that CMake generates
-cmake --build build --target pypangolin_pip_install || \
-  cmake --build build --target pypangolin_wheel
+# Install the Python wheel if cmake configured Python bindings.
+# The targets may not exist if Python/pybind11 detection fails on CI.
+# DPVO only uses Pangolin's C++ API, so Python bindings are optional.
+cmake --build build --target pypangolin_pip_install 2>/dev/null || \
+  cmake --build build --target pypangolin_wheel 2>/dev/null || \
+  echo "Warning: pypangolin targets not available — skipping Python bindings"
