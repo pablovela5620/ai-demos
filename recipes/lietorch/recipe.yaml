@@ -12,7 +12,12 @@ source:
 
 build:
   number: 1
-  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "12.9"
+  # Build for every CUDA variant in conda_build_config (12.9 + 13.0). The 12.9
+  # build already exists on the channel (skip-existing); the 13.0 build is new
+  # and unblocks the examples-monorepo CUDA 13 migration (dpvo, mast3r-slam).
+  # cuda-version==${{ cuda_compiler_version }} below drives torch to the matching
+  # cuda130/2.12 build for the 13.0 variant.
+  skip: target_platform != "linux-64" or cuda_compiler == "None"
 
 requirements:
   build:

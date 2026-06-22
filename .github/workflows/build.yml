@@ -39,7 +39,10 @@ jobs:
           TARGET_PLATFORM: ${{ matrix.target }}
           RATTLER_BUILD_ENABLE_GITHUB_INTEGRATION: true
           RATTLER_BUILD_COLOR: always
-          CONDA_OVERRIDE_CUDA: "12"
+          # 13 so the cuda13 host env (lietorch 13.0 variant: pytorch-gpu 2.12
+          # cuda130) resolves on the builder. 12.9 builds still resolve (their
+          # cuda 12.9 deps only need __cuda >=12).
+          CONDA_OVERRIDE_CUDA: "13"
         run: |
           pixi run rattler-build build \
             -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
