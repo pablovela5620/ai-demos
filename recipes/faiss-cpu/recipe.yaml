@@ -1,0 +1,49 @@
+# libfaiss CPU/OpenBLAS companion to the CUDA 13 build.
+#
+# Once ai-demos hosts a `libfaiss` (the cuda13 build for pysfm/pycolmap), pixi's
+# strict channel priority routes ALL `libfaiss` resolution through ai-demos for
+# any env that lists it — including mast3r-slam, which needs the `cpu_openblas`
+# libfaiss (it pairs conda-forge's faiss-python openblas with OpenBLAS torch).
+# So ai-demos must also ship the cpu_openblas libfaiss; then both pysfm (cuda13)
+# and mast3r-slam (cpu_openblas) resolve from ai-demos under strict priority.
+context:
+  name: libfaiss
+  version: "1.10.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/facebookresearch/faiss/archive/v${{ version }}.tar.gz
+    sha256: 65b5493d6b8cb992f104677cab255a9b71ef1e1d2ea3b1500dc995c68b429949
+
+build:
+  number: 0
+  # `cpu_openblas` prefix so conda-forge's faiss-python `libfaiss * cpu*` glob matches.
+  string: cpu_openblas_h${{ hash }}_0
+  # cuda/cpu-agnostic package; build once (gate on the 13.0 variant pass).
+  skip: target_platform != "linux-64" or cuda_compiler_version != "13.0"
+  script: build.sh
+
+requirements:
+  build:
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+  host:
+    - blas-devel * *openblas
+    - libgomp
+  run:
+    - libblas * *openblas
+    - openblas
+  run_exports:
+    weak:
+      - libfaiss >=${{ version }},<2
+
+about:
+  homepage: https://github.com/facebookresearch/faiss
+  license: MIT
+  summary: A library for efficient similarity search (CPU/OpenBLAS build)
+  repository: https://github.com/facebookresearch/faiss
