@@ -1,0 +1,63 @@
+# libfaiss for CUDA 13.
+#
+# conda-forge's faiss-split-feedstock only ships cuda11/12 GPU builds, and its
+# 1.10+ builds use the `cudaXXX_mkl` build-string convention. The conda-forge
+# `pycolmap` (used by examples-monorepo's pysfm) hard-requires the *legacy*
+# `libfaiss * *_cuda` build-string glob (>=1.9.0,<2), which only matched the old
+# 1.9.0 `_cuda`-suffixed builds. This recipe rebuilds libfaiss 1.10.0 for CUDA 13
+# with that legacy `_cuda` suffix so pysfm can solve on the cuda130 stack.
+context:
+  name: libfaiss
+  version: "1.10.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/facebookresearch/faiss/archive/v${{ version }}.tar.gz
+    sha256: 65b5493d6b8cb992f104677cab255a9b71ef1e1d2ea3b1500dc995c68b429949
+
+build:
+  number: 0
+  # Legacy `_cuda` suffix so conda-forge pycolmap's `libfaiss * *_cuda` glob matches.
+  string: cuda${{ cuda_compiler_version | replace(".", "") }}h${{ hash }}_0_cuda
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "13.0"
+  script: build.sh
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+  variant:
+    use_keys:
+      - cuda_compiler_version
+
+requirements:
+  build:
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('cuda') }}
+    - cmake
+    - ninja
+  host:
+    - cuda-version ==${{ cuda_compiler_version }}
+    - blas-devel * *mkl
+    - libgomp
+    - cuda-cudart-dev
+    - cuda-profiler-api
+    - libcublas-dev
+    - libcurand-dev
+  run:
+    - libblas * *mkl
+    - mkl
+  run_exports:
+    weak:
+      - libfaiss >=${{ version }},<2
+
+about:
+  homepage: https://github.com/facebookresearch/faiss
+  license: MIT
+  summary: A library for efficient similarity search (CUDA 13 GPU build, legacy _cuda suffix)
+  description: |
+    libfaiss built with FAISS_ENABLE_GPU=ON against CUDA 13 for the
+    examples-monorepo pysfm package (pycolmap requires `libfaiss * *_cuda`).
+  repository: https://github.com/facebookresearch/faiss
