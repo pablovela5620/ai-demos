@@ -37,6 +37,8 @@ tests:
   - package_contents:
       bin:
         - claude
+      files:
+        - etc/pixi/claude/global-ignore-conda-prefix
   - script:
       - claude --version
 
