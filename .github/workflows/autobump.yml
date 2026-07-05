@@ -3,55 +3,84 @@ name: Autobump
 on:
   workflow_dispatch:
     inputs:
-      recipe:
-        description: Recipe to bump (blank = all)
+      package:
+        description: Recipe/package to bump. Leave empty to check all packages.
         required: false
+        default: ""
   schedule:
-    - cron: "0 5 * * 1" # Mondays 05:00 UTC; agent-fleet pin-bump follows at 06:00
+    - cron: "0 5 * * 1"
 
 jobs:
   bump:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { recipe: playwright-cli, npm: "@playwright/cli" }
-          - { recipe: paseo, npm: "@getpaseo/cli" }
-          - { recipe: claude-code, npm: "@anthropic-ai/claude-code" }
-          - { recipe: splat-transform, npm: "@playcanvas/splat-transform" }
     name: Bump ${{ matrix.recipe }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - recipe: playwright-cli
+            npm-package: "@playwright/cli"
+          - recipe: paseo
+            npm-package: "@getpaseo/cli"
+          - recipe: claude-code
+            npm-package: "@anthropic-ai/claude-code"
+          - recipe: splat-transform
+            npm-package: "@playcanvas/splat-transform"
+    if: github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Bump version
+      - name: Bump npm recipe
         id: bump
-        if: github.event_name == 'schedule' || github.event.inputs.recipe == '' || github.event.inputs.recipe == matrix.recipe
-        run: python3 .github/scripts/update-npm.py ${{ matrix.recipe }} ${{ matrix.npm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bump_output="$(python3 .github/scripts/update-npm.py '${{ matrix.recipe }}' '${{ matrix.npm-package }}')"
+          printf '%s\n' "$bump_output"
+
+          result="$(printf '%s\n' "$bump_output" | tail -n 1)"
+          if [ "$result" != "changed" ] && [ "$result" != "unchanged" ]; then
+            echo "Unexpected updater result: $result" >&2
+            exit 1
+          fi
+
+          old_version="$(printf '%s\n' "$bump_output" | sed -n 's/^old-version=//p' | tail -n 1)"
+          new_version="$(printf '%s\n' "$bump_output" | sed -n 's/^new-version=//p' | tail -n 1)"
+
+          echo "old-version=$old_version" >> "$GITHUB_OUTPUT"
+          echo "new-version=$new_version" >> "$GITHUB_OUTPUT"
+          if [ "$result" = "changed" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create Pull Request
-        id: pr
-        if: steps.bump.outcome == 'success' && steps.bump.outputs.old-version != steps.bump.outputs.new-version
-        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
-        with:
-          token: ${{ github.token }}
-          title: Bump ${{ matrix.recipe }} from ${{ steps.bump.outputs.old-version }} to ${{ steps.bump.outputs.new-version }}
-          commit-message: Bump ${{ matrix.recipe }} from ${{ steps.bump.outputs.old-version }} to ${{ steps.bump.outputs.new-version }}
-          branch: bump-${{ matrix.recipe }}
-          delete-branch: true
-          body: |
-            # ${{ matrix.recipe }}
+        if: steps.bump.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            `${{ steps.bump.outputs.old-version }}` -> `${{ steps.bump.outputs.new-version }}`
+          branch="autobump/${{ matrix.recipe }}-${{ steps.bump.outputs.new-version }}"
+          title="Bump ${{ matrix.recipe }} from ${{ steps.bump.outputs.old-version }} to ${{ steps.bump.outputs.new-version }}"
 
-            Source: npm `${{ matrix.npm }}`. Merging publishes to prefix.dev/ai-demos;
-            the agent-fleet pin-bump picks it up from there.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add "recipes/${{ matrix.recipe }}/recipe.yaml"
+          git commit -m "$title"
+          git push --set-upstream origin "$branch"
 
-      - name: Enable auto-merge
-        if: steps.pr.outputs.pull-request-operation == 'created'
-        run: gh pr merge --auto --squash "${{ steps.pr.outputs.pull-request-url }}" || echo "auto-merge unavailable (enable in repo settings)"
-        env:
-          GH_TOKEN: ${{ github.token }}
+          pr_url="$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "$title" \
+            --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
+          gh pr merge "$pr_url" --auto --squash || echo "auto-merge unavailable"
