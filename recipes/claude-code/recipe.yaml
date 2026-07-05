@@ -45,4 +45,4 @@ about:
   repository: https://github.com/anthropics/claude-code
   license: LicenseRef-Anthropic-Commercial-Terms
   license_file: LICENSE.md
-  summary: Claude Code - Anthropic's agentic coding CLI (native binary repackaged from the official npm platform packages). Proprietary license - on ai-demos temporarily for testing; long-term home should be a private or tailnet-hosted channel. Disable self-updates via settings autoUpdates=false; updates come from channel version bumps.
+  summary: Claude Code - Anthropic agentic coding CLI
