@@ -29,6 +29,8 @@ jobs:
             npm-package: "@anthropic-ai/claude-code"
           - recipe: splat-transform
             npm-package: "@playcanvas/splat-transform"
+          - recipe: ruler
+            npm-package: "@intellectronica/ruler"
     if: github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe
     env:
       GH_TOKEN: ${{ github.token }}

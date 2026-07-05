@@ -1,0 +1,34 @@
+context:
+  version: "0.3.44"
+
+package:
+  name: ruler
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/@intellectronica/ruler/-/ruler-${{ version }}.tgz
+  sha256: 3fce3248fc92b642dfcbd0b57ac26f2ab8e9a1a97262f97f15ffb37b29b11565
+
+build:
+  number: 0
+  script: build.sh
+
+requirements:
+  host:
+    - nodejs >=18
+  run:
+    - nodejs >=18
+
+tests:
+  - package_contents:
+      bin:
+        - ruler
+  - script:
+      - ruler --version
+
+about:
+  homepage: https://github.com/intellectronica/ruler
+  repository: https://github.com/intellectronica/ruler
+  license: MIT
+  license_file: LICENSE
+  summary: Centralise AI coding assistant instructions and MCP config - one source distributed to per-agent formats
