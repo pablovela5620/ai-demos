@@ -1,0 +1,34 @@
+context:
+  version: "0.1.15"
+
+package:
+  name: playwright-cli
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/@playwright/cli/-/cli-${{ version }}.tgz
+  sha256: 6527cb669d7500de63a8a5c4a371d51ba296b0434d6ded43e1b9c02a1ed03cb2
+
+build:
+  number: 0
+  script: build.sh
+
+requirements:
+  host:
+    - nodejs >=18
+  run:
+    - nodejs >=18
+
+tests:
+  - package_contents:
+      bin:
+        - playwright-cli
+  - script:
+      - playwright-cli --version
+
+about:
+  homepage: https://github.com/microsoft/playwright-cli
+  repository: https://github.com/microsoft/playwright-cli
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Playwright command line interface for browser automation from agents and scripts
