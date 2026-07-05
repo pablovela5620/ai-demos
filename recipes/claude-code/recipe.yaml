@@ -1,0 +1,48 @@
+context:
+  version: "2.1.201"
+
+package:
+  name: claude-code
+  version: ${{ version }}
+
+# The @anthropic-ai/claude-code npm package is only a thin wrapper whose
+# postinstall downloads a platform-native binary from these per-platform npm
+# packages. Repackage the native binary directly — no nodejs needed.
+source:
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://registry.npmjs.org/@anthropic-ai/claude-code-darwin-arm64/-/claude-code-darwin-arm64-${{ version }}.tgz
+      sha256: e324e1b2edbaf2e8f9dfe288949235db20523f784de75fa3111c784a31df1bf4
+  - if: target_platform == "linux-64"
+    then:
+      url: https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64/-/claude-code-linux-x64-${{ version }}.tgz
+      sha256: 8999808e9279c00b4db4ddbcb81b94f7f1734bd7e0d949b13081de8a63a7a7dc
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://registry.npmjs.org/@anthropic-ai/claude-code-linux-arm64/-/claude-code-linux-arm64-${{ version }}.tgz
+      sha256: f8e1966c35b1cd48445399eb17258d8619329ce2db48cfe4f335857d83e81c7d
+
+build:
+  number: 0
+  script: build.sh
+  dynamic_linking:
+    binary_relocation: false
+    missing_dso_allowlist:
+      - "**"
+
+requirements:
+  run: []
+
+tests:
+  - package_contents:
+      bin:
+        - claude
+  - script:
+      - claude --version
+
+about:
+  homepage: https://claude.com/claude-code
+  repository: https://github.com/anthropics/claude-code
+  license: LicenseRef-Anthropic-Commercial-Terms
+  license_file: LICENSE.md
+  summary: Claude Code - Anthropic's agentic coding CLI (native binary repackaged from the official npm platform packages). Proprietary license - on ai-demos temporarily for testing; long-term home should be a private or tailnet-hosted channel. Disable self-updates via settings autoUpdates=false; updates come from channel version bumps.
