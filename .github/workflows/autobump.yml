@@ -1,0 +1,89 @@
+name: Autobump
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Recipe/package to bump. Leave empty to check all packages.
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 5 * * 1"
+
+jobs:
+  bump:
+    name: Bump ${{ matrix.recipe }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - recipe: playwright-cli
+            npm-package: "@playwright/cli"
+          - recipe: paseo
+            npm-package: "@getpaseo/cli"
+          - recipe: claude-code
+            npm-package: "@anthropic-ai/claude-code"
+          - recipe: splat-transform
+            npm-package: "@playcanvas/splat-transform"
+    if: github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+
+      - name: Bump npm recipe
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bump_output="$(pixi run update-npm '${{ matrix.recipe }}' '${{ matrix.npm-package }}')"
+          printf '%s\n' "$bump_output"
+
+          result="$(printf '%s\n' "$bump_output" | tail -n 1)"
+          if [ "$result" != "changed" ] && [ "$result" != "unchanged" ]; then
+            echo "Unexpected updater result: $result" >&2
+            exit 1
+          fi
+
+          old_version="$(printf '%s\n' "$bump_output" | sed -n 's/^old-version=//p' | tail -n 1)"
+          new_version="$(printf '%s\n' "$bump_output" | sed -n 's/^new-version=//p' | tail -n 1)"
+
+          echo "old-version=$old_version" >> "$GITHUB_OUTPUT"
+          echo "new-version=$new_version" >> "$GITHUB_OUTPUT"
+          if [ "$result" = "changed" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.bump.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          branch="autobump/${{ matrix.recipe }}-${{ steps.bump.outputs.new-version }}"
+          title="Bump ${{ matrix.recipe }} from ${{ steps.bump.outputs.old-version }} to ${{ steps.bump.outputs.new-version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add "recipes/${{ matrix.recipe }}/recipe.yaml"
+          git commit -m "$title"
+          git push --set-upstream origin "$branch"
+
+          pr_url="$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "$title" \
+            --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
+          gh pr merge "$pr_url" --auto --squash || echo "auto-merge unavailable"
