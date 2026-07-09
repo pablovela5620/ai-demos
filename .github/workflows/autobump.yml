@@ -31,7 +31,10 @@ jobs:
             npm-package: "@playcanvas/splat-transform"
           - recipe: ruler
             npm-package: "@intellectronica/ruler"
-    if: github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe
+    # NB: the package filter lives on the steps, not the job — the `matrix`
+    # context is not allowed in job-level `if` (GitHub rejects the whole
+    # workflow file: schedules silently never fire, every push logs a
+    # phantom "workflow file issue" failure).
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -42,6 +45,7 @@ jobs:
         uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
 
       - name: Bump npm recipe
+        if: github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe
         id: bump
         shell: bash
         run: |
