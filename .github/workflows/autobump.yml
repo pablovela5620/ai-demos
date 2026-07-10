@@ -27,6 +27,8 @@ jobs:
             npm-package: "@getpaseo/cli"
           - recipe: claude-code
             npm-package: "@anthropic-ai/claude-code"
+          - recipe: codex
+            npm-package: "@openai/codex"
           - recipe: splat-transform
             npm-package: "@playcanvas/splat-transform"
           - recipe: ruler

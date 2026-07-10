@@ -1,0 +1,53 @@
+context:
+  version: "0.144.1"
+
+package:
+  name: codex
+  version: ${{ version }}
+
+# @openai/codex on npm is a 4KB JS shim whose optionalDependencies carry the
+# real per-platform rust binaries (published as npm alias versions like
+# 0.144.1-darwin-arm64). Repackage the platform vendor tree directly — no
+# nodejs needed. Packaged here (not conda-forge, which rebuilds from source
+# behind volunteer maintainers) because codex releases near-daily and agent
+# CLIs need same-day bumps — same rationale as claude-code.
+source:
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://registry.npmjs.org/@openai/codex/-/codex-${{ version }}-darwin-arm64.tgz
+      sha256: 365a5685170f66bad58dd1dabb0462dfb824f82a870bcc8d9af2eb0a41cf2e18
+  - if: target_platform == "linux-64"
+    then:
+      url: https://registry.npmjs.org/@openai/codex/-/codex-${{ version }}-linux-x64.tgz
+      sha256: e2a64d421c10aaf0b7e3c0e8bd71b71e497d75823003318b674a278d71add0c7
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://registry.npmjs.org/@openai/codex/-/codex-${{ version }}-linux-arm64.tgz
+      sha256: 25c66d4451c4f57df6b427173ed7d3d7e29c129d61dc58498dbdb946787b7655
+
+build:
+  number: 0
+  script: build.sh
+  dynamic_linking:
+    binary_relocation: false
+    missing_dso_allowlist:
+      - "**"
+
+requirements:
+  run: []
+
+tests:
+  - package_contents:
+      bin:
+        - codex
+      files:
+        - etc/pixi/codex/global-ignore-conda-prefix
+  - script:
+      - codex --version
+
+about:
+  homepage: https://developers.openai.com/codex
+  repository: https://github.com/openai/codex
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: OpenAI Codex CLI - coding agent that runs locally (repack of the official npm platform binaries)
