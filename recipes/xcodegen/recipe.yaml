@@ -1,0 +1,40 @@
+context:
+  version: "2.45.4"
+
+package:
+  name: xcodegen
+  version: ${{ version }}
+
+# Upstream publishes a universal macOS binary with both arm64 and x86_64
+# slices. The repository CI currently publishes only the osx-arm64 subdir.
+source:
+  url: https://github.com/yonaskolb/XcodeGen/releases/download/${{ version }}/xcodegen.zip
+  sha256: 090ec29491aad50aec10631bf6e62253fed733c50f3aab0f5ffc86bc170bdbef
+
+build:
+  number: 0
+  script: build.sh
+  skip:
+    - target_platform != "osx-arm64"
+  dynamic_linking:
+    binary_relocation: false
+
+requirements:
+  run:
+    - __osx >=11.0
+
+tests:
+  - package_contents:
+      bin:
+        - xcodegen
+      files:
+        - share/xcodegen/SettingPresets/base.yml
+  - script:
+      - xcodegen --version
+
+about:
+  homepage: https://github.com/yonaskolb/XcodeGen
+  repository: https://github.com/yonaskolb/XcodeGen
+  license: MIT
+  license_file: LICENSE
+  summary: Swift command-line tool for generating Xcode projects
