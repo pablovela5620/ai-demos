@@ -1,0 +1,53 @@
+context:
+  version: "0.2.0"
+
+package:
+  name: mcap-cli
+  version: ${{ version }}
+
+# Upstream publishes standalone binaries for each supported platform.
+source:
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://github.com/foxglove/mcap/releases/download/releases%2Fmcap-cli%2Fv${{ version }}/mcap-macos-arm64
+      sha256: 25ecfc0f9b3c0dc666b267919a0cd80fb4fbf7c22efea8847047dda010938ef4
+      file_name: mcap
+  - if: target_platform == "linux-64"
+    then:
+      url: https://github.com/foxglove/mcap/releases/download/releases%2Fmcap-cli%2Fv${{ version }}/mcap-linux-amd64
+      sha256: 53274b6ca922e2078daa02ae32aed75da046f78d6c3da9dc19065254be24b483
+      file_name: mcap
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://github.com/foxglove/mcap/releases/download/releases%2Fmcap-cli%2Fv${{ version }}/mcap-linux-arm64
+      sha256: 983af5f0d6b4e845ab0b4923f1505a992a3199a8bf797ee3afd78c1c8700a6fd
+      file_name: mcap
+  - url: https://raw.githubusercontent.com/foxglove/mcap/refs/tags/releases/mcap-cli/v${{ version }}/LICENSE
+    sha256: da11235665c17d4c1634072dae92b8ba1b38d6fdde2ccf19a6bbede33253f58d
+    file_name: LICENSE
+
+build:
+  number: 0
+  script: build.sh
+  dynamic_linking:
+    binary_relocation: false
+
+requirements:
+  run:
+    - if: osx
+      then:
+        - __osx >=11.0
+
+tests:
+  - package_contents:
+      bin:
+        - mcap
+  - script:
+      - mcap --version
+
+about:
+  homepage: https://mcap.dev
+  repository: https://github.com/foxglove/mcap
+  license: MIT
+  license_file: LICENSE
+  summary: Command-line tool for inspecting, merging, and splitting MCAP files
