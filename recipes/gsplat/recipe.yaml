@@ -1,0 +1,74 @@
+context:
+  name: gsplat
+  version: "1.5.3"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/6d/94/a0963873708223385ac926112dc3e40ab08297784ac53d95309b4cb5a801/gsplat-${{ version }}.tar.gz
+  sha256: 343f080c470e891ba3c697c03bdf0952cb982d1d535fdc24adb23c2cb4fba906
+
+build:
+  number: 1
+  string: py312_torch212_cuda130_h${{ hash }}_1
+  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "13.0"
+  script:
+    - export TORCH_CUDA_ARCH_LIST="8.6;12.0+PTX"
+    - export MAX_JOBS=8
+    - export CPU_COUNT=8
+    - ${{ PYTHON }} -m pip install . --no-deps --no-build-isolation -v
+  dynamic_linking:
+    missing_dso_allowlist:
+      - "*/libcuda.so*"
+  variant:
+    use_keys:
+      - cuda_compiler_version
+
+requirements:
+  build:
+    - ${{ compiler('cuda') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('c') }}
+    - ninja
+  host:
+    - python ==3.12
+    - pytorch-gpu >=2.12,<2.13
+    - cuda-version ==13.0
+    - cuda-cudart-dev
+    - cuda-crt
+    - cudnn
+    - libcusparse-dev
+    - cuda-driver-dev
+    - cuda-nvcc
+    - cuda-nvrtc-dev
+    - cuda-nvtx-dev
+    - cuda-nvml-dev
+    - cuda-profiler-api
+    - cusparselt
+    - libcublas-dev
+    - libcufile-dev
+    - libcufft-dev
+    - libcurand-dev
+    - libcusolver-dev
+    - ninja
+    - setuptools
+    - pip
+  run:
+    - python ==3.12
+    - pytorch-gpu >=2.12,<2.13
+    - numpy
+    - jaxtyping
+    - rich >=12
+    - ninja
+    # gsplat/cuda/_backend.py imports `packaging` lazily on the first CUDA
+    # call — absent from the sdist metadata, caught by a real-GPU smoke test.
+    - packaging
+
+about:
+  homepage: https://github.com/nerfstudio-project/gsplat
+  repository: https://github.com/nerfstudio-project/gsplat
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: CUDA-accelerated differentiable rasterization of 3D Gaussians
