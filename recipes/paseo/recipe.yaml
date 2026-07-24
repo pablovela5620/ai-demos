@@ -1,5 +1,5 @@
 context:
-  version: "0.1.107"
+  version: "0.2.1"
 
 package:
   name: paseo
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://registry.npmjs.org/@getpaseo/cli/-/cli-${{ version }}.tgz
-  sha256: 53297afdd8e32087e6abe81f05467813b459779f4780531267000604eb772882
+  sha256: 271193c4f5a6a355e82a83a661d9d597b668963276d118711caf5c551727bd1c
 
 build:
   number: 0
