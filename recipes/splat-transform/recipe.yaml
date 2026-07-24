@@ -1,5 +1,5 @@
 context:
-  version: "1.9.2"
+  version: "3.1.6"
 
 package:
   name: splat-transform
@@ -7,13 +7,11 @@ package:
 
 source:
   url: https://registry.npmjs.org/@playcanvas/splat-transform/-/splat-transform-${{ version }}.tgz
-  sha256: f71d4955c24335baae37d51cfda1c79fe18c405d424db33d8c4752d2b8a99a41
+  sha256: 140e9497312d0a613c73b0bd787ccc4e32b046a9c01740e318ffbda287d2a1f0
 
 build:
   number: 0
   script: build.sh
-  skip:
-    - target_platform == "linux-aarch64"
   dynamic_linking:
     binary_relocation: false
     missing_dso_allowlist:
@@ -37,9 +35,9 @@ build:
 
 requirements:
   host:
-    - nodejs >=18
+    - nodejs >=22
   run:
-    - nodejs >=18
+    - nodejs >=22
     - if: osx
       then:
         - __osx >=11.0
@@ -52,7 +50,7 @@ tests:
       bin:
         - splat-transform
   - script:
-      - splat-transform --version
+      - splat-transform --version 2>&1 | grep -F "splat-transform v${{ version }} ("
 
 about:
   homepage: https://github.com/playcanvas/splat-transform
