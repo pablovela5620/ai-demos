@@ -31,7 +31,13 @@ requirements:
     - pkg-config
 
   host:
-    - pytorch-gpu >=2.10.0
+    # Exact-minor torch pin: libtorch's C++ ABI is not stable across minor
+    # releases, and this recipe captures no libtorch run_export — an unpinned
+    # host floats to the newest conda-forge pytorch (2.13 as of 2026-08) and
+    # the resulting .so misbehaves under the 2.12 torch that examples-monorepo
+    # (and the prebuilt gsplat, py312_torch212) actually run. Bump this
+    # together with the monorepo torch pin.
+    - pytorch-gpu 2.12.*
     - cuda-version==${{ cuda_compiler_version }}
     - cuda-cudart-dev
     - cuda-crt
@@ -55,7 +61,8 @@ requirements:
     - eigen
   run:
     - python=3.11
-    - pytorch-gpu >=2.10.0
+    # Keep in lockstep with the host pin above (ABI, see comment there).
+    - pytorch-gpu 2.12.*
     - scipy
     - pyyaml
 
