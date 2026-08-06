@@ -11,7 +11,7 @@ source:
     rev: 3e2695ddedb6f234510da4f1519d9861e5a1cd8e
 
 build:
-  number: 1
+  number: 2
   # Build for every CUDA variant in conda_build_config (12.9 + 13.0). The 12.9
   # build already exists on the channel (skip-existing); the 13.0 build is new
   # and unblocks the examples-monorepo CUDA 13 migration (dpvo, mast3r-slam).
