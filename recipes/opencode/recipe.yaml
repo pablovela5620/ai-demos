@@ -1,0 +1,47 @@
+context:
+  version: "1.18.14"
+
+package:
+  name: opencode
+  version: ${{ version }}
+
+# Repack the official npm platform binaries. The linux-arm64 package is the
+# glibc build; this is deliberate because the github-releases conda package
+# currently selects opencode-linux-arm64-musl on glibc systems.
+source:
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://registry.npmjs.org/opencode-darwin-arm64/-/opencode-darwin-arm64-${{ version }}.tgz
+      sha256: fd0ce07182a81c93a875d17c5e47b80b430b9ae6b0137275a7c198f2eac2baf5
+  - if: target_platform == "linux-64"
+    then:
+      url: https://registry.npmjs.org/opencode-linux-x64/-/opencode-linux-x64-${{ version }}.tgz
+      sha256: a1500b8f586186f8d8acc9a09d941dfa704be0d163c9862a510a9097d322e494
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://registry.npmjs.org/opencode-linux-arm64/-/opencode-linux-arm64-${{ version }}.tgz
+      sha256: c88bf89e778d6e95fb010b8d82d7328814c50589d991ef2c9aa57416ffa83baa
+
+build:
+  number: 0
+  script: build.sh
+  dynamic_linking:
+    binary_relocation: false
+    missing_dso_allowlist:
+      - "**"
+
+requirements:
+  run: []
+
+tests:
+  - package_contents:
+      bin:
+        - opencode
+  - script:
+      - opencode --version
+
+about:
+  homepage: https://opencode.ai
+  repository: https://github.com/anomalyco/opencode
+  license: MIT
+  summary: Open source coding agent
