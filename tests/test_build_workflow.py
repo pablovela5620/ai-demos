@@ -5,12 +5,14 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 from typing import Any
+import tomllib
 
 import yaml
 
 WORKFLOW_PATH: Path = (
     Path(__file__).parent.parent / ".github" / "workflows" / "build.yml"
 )
+PIXI_PATH: Path = Path(__file__).parent.parent / "pixi.toml"
 
 
 def load_workflow() -> dict[str, Any]:
@@ -42,6 +44,21 @@ class BuildWorkflowTest(unittest.TestCase):
             "github.event_name == 'push' && steps.check.outputs.has-packages == 'true'",
         )
         self.assertEqual(upload_step["with"]["retention-days"], 1)
+
+    def test_build_logic_lives_in_pixi_task(self) -> None:
+        """Keep the provider workflow as a thin wrapper around a local task."""
+        workflow: dict[str, Any] = load_workflow()
+        build_steps: list[dict[str, Any]] = workflow["jobs"]["build"]["steps"]
+        build_step: dict[str, Any] = next(
+            step for step in build_steps if step.get("name") == "Build packages"
+        )
+        with PIXI_PATH.open("rb") as pixi_file:
+            pixi: dict[str, Any] = tomllib.load(pixi_file)
+        command: str = pixi["tasks"]["ci-build"]
+
+        self.assertEqual(build_step["run"], "pixi run ci-build")
+        self.assertIn("--target-platform=$TARGET_PLATFORM", command)
+        self.assertIn("--noarch-build-platform=linux-64", command)
 
 
 if __name__ == "__main__":

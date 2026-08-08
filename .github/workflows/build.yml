@@ -32,10 +32,10 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+        uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
 
       - name: Check workflow contract
-        run: pixi run test-workflow
+        run: pixi run check
 
       - name: Build packages
         env:
@@ -46,14 +46,7 @@ jobs:
           # cuda130) resolves on the builder. 12.9 builds still resolve (their
           # cuda 12.9 deps only need __cuda >=12).
           CONDA_OVERRIDE_CUDA: "13"
-        run: |
-          pixi run rattler-build build \
-            -c ./output -c https://prefix.dev/ai-demos -c conda-forge \
-            --recipe-dir recipes/ \
-            --variant-config conda_build_config.yaml \
-            --skip-existing=all --no-test \
-            --continue-on-failure \
-            --target-platform=$TARGET_PLATFORM
+        run: pixi run ci-build
 
       - name: Check for packages
         id: check
@@ -83,12 +76,12 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+      - uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
         with:
           activate-environment: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: output
           merge-multiple: true

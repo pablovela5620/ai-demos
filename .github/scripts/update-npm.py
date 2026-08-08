@@ -205,8 +205,8 @@ def find_adjacent_sha256_line(lines: list[str], url_line_index: int) -> int:
     raise ValueError(f"Could not find adjacent sha256 line after source URL on line {line_number}")
 
 
-def find_registry_sources(lines: list[str]) -> list[SourceUrlLine]:
-    """Find all source URLs hosted on the npm registry."""
+def find_source_urls(lines: list[str]) -> list[SourceUrlLine]:
+    """Find source URLs with adjacent sha256 entries."""
     source_lines: list[SourceUrlLine] = []
     line_index: int
     line: str
@@ -221,9 +221,6 @@ def find_registry_sources(lines: list[str]) -> list[SourceUrlLine]:
         suffix: str
         newline: str
         prefix, quote, value, suffix, newline = parsed_url
-        if REGISTRY_HOST not in value:
-            continue
-
         sha256_line_index: int = find_adjacent_sha256_line(lines, line_index)
         source_lines.append(
             SourceUrlLine(
@@ -471,9 +468,14 @@ def update_recipe(recipe_name: str, npm_package: str) -> bool:
         print("unchanged")
         return False
 
-    source_lines: list[SourceUrlLine] = find_registry_sources(lines)
+    source_lines: list[SourceUrlLine] = [
+        source_line
+        for source_line in find_source_urls(lines)
+        if url_for_version(source_line.value, current_version, latest_version)
+        != source_line.value
+    ]
     if not source_lines:
-        raise ValueError(f"No {REGISTRY_HOST} source URLs found in {recipe_path}")
+        raise ValueError(f"No versioned source URLs found in {recipe_path}")
 
     build_number_line: BuildNumberLine = find_build_number(lines)
     sha256_by_url: dict[str, str] = {}
