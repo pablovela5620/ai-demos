@@ -5,9 +5,8 @@ package:
   name: opencode
   version: ${{ version }}
 
-# Repack the official npm platform binaries. The linux-arm64 package is the
-# glibc build; this is deliberate because the github-releases conda package
-# currently selects opencode-linux-arm64-musl on glibc systems.
+# Repack official platform binaries. The npm linux-arm64 package unexpectedly
+# requires /lib/ld-musl-aarch64.so.1, so use the upstream glibc release asset.
 source:
   - if: target_platform == "osx-arm64"
     then:
@@ -19,11 +18,11 @@ source:
       sha256: 9d2aac9f7828e96b616551c60be25bd71b8452dc917294396707a8e71948aa7e
   - if: target_platform == "linux-aarch64"
     then:
-      url: https://registry.npmjs.org/opencode-linux-arm64/-/opencode-linux-arm64-${{ version }}.tgz
-      sha256: dfe4242314f616fb49a741089e587760bcc22538c28566c65825631434c12855
+      url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-arm64.tar.gz
+      sha256: dd4ac8c2167a8338caf296b002c955141d52a2e9c95ee0a95f4ae9939c293ab0
 
 build:
-  number: 0
+  number: 1
   script: build.sh
   dynamic_linking:
     binary_relocation: false
