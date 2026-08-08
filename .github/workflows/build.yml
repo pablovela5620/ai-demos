@@ -108,6 +108,10 @@ jobs:
       - name: Upload packages to ai-demos channel
         shell: bash
         run: |
+          if [ ! -d output ]; then
+            echo "No packages to upload"
+            exit 0
+          fi
           first_file="$(find output -type f -name '*.conda' -print -quit)"
           if [ -z "$first_file" ]; then
             echo "No packages to upload"
@@ -121,6 +125,10 @@ jobs:
       - name: Verify packages via pixi search
         shell: bash
         run: |
+          if [ ! -d output ]; then
+            echo "No packages to verify"
+            exit 0
+          fi
           first_file="$(find output -type f -name '*.conda' -print -quit)"
           if [ -z "$first_file" ]; then
             echo "No packages to verify"

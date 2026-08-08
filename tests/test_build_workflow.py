@@ -60,6 +60,21 @@ class BuildWorkflowTest(unittest.TestCase):
         self.assertIn("--target-platform=$TARGET_PLATFORM", command)
         self.assertIn("--noarch-build-platform=linux-64", command)
 
+    def test_upload_job_accepts_an_empty_build(self) -> None:
+        """A push with no new package artifacts is successful, not an error."""
+        workflow: dict[str, Any] = load_workflow()
+        upload_steps: list[dict[str, Any]] = workflow["jobs"]["upload"]["steps"]
+        for step_name in (
+            "Upload packages to ai-demos channel",
+            "Verify packages via pixi search",
+        ):
+            step: dict[str, Any] = next(
+                candidate
+                for candidate in upload_steps
+                if candidate.get("name") == step_name
+            )
+            self.assertIn('if [ ! -d output ]; then', step["run"])
+
 
 if __name__ == "__main__":
     unittest.main()
