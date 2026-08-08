@@ -9,7 +9,9 @@ description = "Conda packages for AI demos hosted on prefix.dev/ai-demos"
 build-new = "rattler-build build -c https://prefix.dev/ai-demos -c conda-forge --recipe-dir recipes/ --skip-existing=all --no-test"
 build-all = "rattler-build build -c https://prefix.dev/ai-demos -c conda-forge --recipe-dir recipes/ --no-test"
 update-npm = "python .github/scripts/update-npm.py"
+test-workflow = "python -m unittest tests/test_build_workflow.py"
 
 [dependencies]
 rattler-build = ">=0.58.4,<0.59"
 python = "3.13.*"
+pyyaml = "6.0.*"

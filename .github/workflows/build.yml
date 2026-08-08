@@ -20,6 +20,7 @@ jobs:
         include:
           - { target: linux-64, os: ubuntu-latest }
           - { target: linux-aarch64, os: ubuntu-24.04-arm }
+          - { target: osx-arm64, os: macos-latest }
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -32,6 +33,9 @@ jobs:
 
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+
+      - name: Check workflow contract
+        run: pixi run test-workflow
 
       - name: Build packages
         env:
@@ -63,11 +67,12 @@ jobs:
           fi
 
       - name: Upload build artifacts
-        if: steps.check.outputs.has-packages == 'true'
+        if: github.event_name == 'push' && steps.check.outputs.has-packages == 'true'
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: packages-${{ matrix.target }}
           path: output/**/*.conda
+          retention-days: 1
 
   upload:
     runs-on: ubuntu-latest

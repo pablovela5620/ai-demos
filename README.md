@@ -7,7 +7,7 @@ Conda package forge for AI/robotics demos, built with [rattler-build](https://ra
 | Package | Description | Platforms |
 |---------|-------------|-----------|
 | [cuvslam](https://prefix.dev/channels/ai-demos/packages/cuvslam) | Python bindings for NVIDIA cuVSLAM visual SLAM | linux-64, linux-aarch64 |
-| [opencode](https://prefix.dev/channels/ai-demos/packages/opencode) | Open source coding agent | linux-64, linux-aarch64 |
+| [opencode](https://prefix.dev/channels/ai-demos/packages/opencode) | Open source coding agent | linux-64, linux-aarch64, osx-arm64 |
 | [simplecv](https://prefix.dev/channels/ai-demos/packages/simplecv) | Simple computer-vision utilities | noarch |
 | [splat-transform](https://prefix.dev/channels/ai-demos/packages/splat-transform) | CLI for 3D Gaussian splat format conversion and transformation | linux-64, linux-aarch64, osx-arm64 |
 
@@ -62,7 +62,7 @@ Built `.conda` packages are written to `output/`.
 
 GitHub Actions (`.github/workflows/build.yml`) runs on every push to `main`:
 
-1. **Build** — builds all recipes for `linux-64` and `linux-aarch64`, skipping versions that already exist on the channel.
+1. **Build** — builds all recipes for `linux-64`, `linux-aarch64`, and `osx-arm64`, skipping versions that already exist on the channel.
 2. **Upload** — authenticates to prefix.dev via OIDC trusted publisher and uploads new `.conda` packages to the `ai-demos` channel.
 
-Pull requests trigger builds (no upload) so you can verify the recipe compiles before merging.
+Pull requests trigger builds without storing package artifacts. Push artifacts are retained for one day, only long enough for the upload job to publish them.
