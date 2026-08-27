@@ -426,7 +426,12 @@ def render_sha256_line(sha_line: Sha256Line, value: str) -> str:
 
 
 def render_build_number_line(build_number_line: BuildNumberLine) -> str:
-    """Render build.number reset to zero."""
+    """Reset build.number unless the recipe marks its corrected lane as stable."""
+    if "autobump: preserve-build-number" in build_number_line.suffix:
+        return (
+            f"{build_number_line.prefix}{build_number_line.value}"
+            f"{build_number_line.suffix}{build_number_line.newline}"
+        )
     return f"{build_number_line.prefix}0{build_number_line.suffix}{build_number_line.newline}"
 
 

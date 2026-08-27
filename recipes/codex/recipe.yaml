@@ -1,5 +1,5 @@
 context:
-  version: "0.144.1"
+  version: "0.150.1"
 
 package:
   name: codex
@@ -15,15 +15,15 @@ source:
   - if: target_platform == "osx-arm64"
     then:
       url: https://registry.npmjs.org/@openai/codex/-/codex-${{ version }}-darwin-arm64.tgz
-      sha256: 365a5685170f66bad58dd1dabb0462dfb824f82a870bcc8d9af2eb0a41cf2e18
+      sha256: e5008a5b8d7a22e2ad2922a74783de8f7202b7b886a181e6ddbec7633609c885
   - if: target_platform == "linux-64"
     then:
       url: https://registry.npmjs.org/@openai/codex/-/codex-${{ version }}-linux-x64.tgz
-      sha256: e2a64d421c10aaf0b7e3c0e8bd71b71e497d75823003318b674a278d71add0c7
+      sha256: 35a87cf024345cf2d9350e5220401c8d3967ff6feee04055a89c73524927c0a6
   - if: target_platform == "linux-aarch64"
     then:
       url: https://registry.npmjs.org/@openai/codex/-/codex-${{ version }}-linux-arm64.tgz
-      sha256: 25c66d4451c4f57df6b427173ed7d3d7e29c129d61dc58498dbdb946787b7655
+      sha256: a05677acf4c0dd6dbed01ffeaa82dca6337f06856e843787b74ce7bf62019fb4
 
 build:
   number: 0

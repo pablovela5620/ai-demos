@@ -86,14 +86,23 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "$branch"
+          git fetch origin "$branch:refs/remotes/origin/$branch" || true
+          git switch -C "$branch"
           git add "recipes/${{ matrix.recipe }}/recipe.yaml"
           git commit -m "$title"
-          git push --set-upstream origin "$branch"
+          git push --force-with-lease --set-upstream origin "$branch"
 
-          pr_url="$(gh pr create \
-            --base main \
-            --head "$branch" \
-            --title "$title" \
-            --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
+          existing_pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" \
+              --title "$title" \
+              --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`."
+            pr_url="$existing_pr"
+          else
+            pr_url="$(gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "$title" \
+              --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
+          fi
           gh pr merge "$pr_url" --auto --squash || echo "auto-merge unavailable"

@@ -1,5 +1,5 @@
 context:
-  version: "0.1.15"
+  version: "0.1.18"
 
 package:
   name: playwright-cli
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://registry.npmjs.org/@playwright/cli/-/cli-${{ version }}.tgz
-  sha256: 6527cb669d7500de63a8a5c4a371d51ba296b0434d6ded43e1b9c02a1ed03cb2
+  sha256: d847190000e3a3328a17ab71a52ccac8062fb2525c0f0c78b789aff1cc9ab37c
 
 build:
   number: 0

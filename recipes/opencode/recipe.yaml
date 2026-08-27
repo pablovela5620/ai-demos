@@ -1,5 +1,5 @@
 context:
-  version: "1.18.13"
+  version: "1.18.23"
 
 package:
   name: opencode
@@ -11,18 +11,18 @@ source:
   - if: target_platform == "osx-arm64"
     then:
       url: https://registry.npmjs.org/opencode-darwin-arm64/-/opencode-darwin-arm64-${{ version }}.tgz
-      sha256: c8c821a730c56d64004dbbb114896ec9c960bd211403e19a481399c4e8c0eb0d
+      sha256: 1415acecc9f520cf28459cef66f9487a9b173ad10b0ea093b8f5087401b0e125
   - if: target_platform == "linux-64"
     then:
       url: https://registry.npmjs.org/opencode-linux-x64/-/opencode-linux-x64-${{ version }}.tgz
-      sha256: 9d2aac9f7828e96b616551c60be25bd71b8452dc917294396707a8e71948aa7e
+      sha256: b987ad440e278a8d543ec99cbac11a14fb3d19ae7254fecfe825dba1f133729e
   - if: target_platform == "linux-aarch64"
     then:
       url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-arm64.tar.gz
-      sha256: dd4ac8c2167a8338caf296b002c955141d52a2e9c95ee0a95f4ae9939c293ab0
+      sha256: 86d3afaf4e8784f9adab189be2a315c12b27ec40a04b70defbe70595c3cc7c65
 
 build:
-  number: 1
+  number: 1  # autobump: preserve-build-number
   script: build.sh
   dynamic_linking:
     binary_relocation: false

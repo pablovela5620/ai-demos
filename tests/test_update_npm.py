@@ -70,6 +70,34 @@ build:
             self.assertIn("sha256: " + "2" * 64, updated)
             self.assertIn("number: 0", updated)
 
+    def test_update_preserves_marked_build_number(self) -> None:
+        """A corrected package lane must keep its build selector across versions."""
+        updater: ModuleType = load_updater()
+        recipe_text: str = """context:
+  version: "1.0.0"
+source:
+  url: https://registry.npmjs.org/tool/-/tool-${{ version }}.tgz
+  sha256: aaaa
+build:
+  number: 1  # autobump: preserve-build-number
+"""
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            recipe_root = Path(temporary_directory)
+            recipe_path = recipe_root / "tool" / "recipe.yaml"
+            recipe_path.parent.mkdir()
+            recipe_path.write_text(recipe_text, encoding="utf-8")
+
+            with (
+                patch.object(updater, "RECIPE_ROOT", recipe_root),
+                patch.object(updater, "fetch_latest_version", return_value="1.1.0"),
+                patch.object(updater, "sha256_url", return_value="1" * 64),
+            ):
+                changed: bool = updater.update_recipe("tool", "tool")
+
+            updated: str = recipe_path.read_text(encoding="utf-8")
+            self.assertTrue(changed)
+            self.assertIn("number: 1  # autobump: preserve-build-number", updated)
+
 
 if __name__ == "__main__":
     unittest.main()
