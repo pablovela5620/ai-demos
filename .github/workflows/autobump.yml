@@ -92,6 +92,7 @@ jobs:
           git add "recipes/${{ matrix.recipe }}/recipe.yaml"
           git commit -m "$title"
           git push --force-with-lease --set-upstream origin "$branch"
+          tested_sha="$(git rev-parse HEAD)"
 
           run_build() {
             local ref="$1"
@@ -129,8 +130,7 @@ jobs:
           }
 
           # PRs created with GITHUB_TOKEN need manual approval before their
-          # pull_request workflows run. Validate explicitly first so the PR is
-          # ready for a human-authorized merge without bypassing package CI.
+          # pull_request workflows run. Validate explicitly before merging.
           run_build "$branch"
 
           existing_pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
@@ -138,11 +138,12 @@ jobs:
             gh pr edit "$existing_pr" \
               --title "$title" \
               --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`."
-            echo "Updated existing PR #$existing_pr"
+            pr_url="$existing_pr"
           else
-            gh pr create \
+            pr_url="$(gh pr create \
               --base main \
               --head "$branch" \
               --title "$title" \
-              --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`."
+              --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
           fi
+          gh pr merge "$pr_url" --squash --match-head-commit "$tested_sha"
