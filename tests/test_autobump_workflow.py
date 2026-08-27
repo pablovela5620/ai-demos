@@ -39,6 +39,20 @@ class AutobumpWorkflowTest(unittest.TestCase):
         self.assertIn('gh pr list --head "$branch" --state open', script)
         self.assertIn('gh pr edit "$existing_pr"', script)
 
+    def test_bot_update_builds_before_opening_pr_and_never_merges(self) -> None:
+        """A bot bump may open a validated PR, but only a human-authorized actor merges."""
+        workflow: dict[str, Any] = load_workflow()
+        bump_job: dict[str, Any] = workflow["jobs"]["bump"]
+        steps: list[dict[str, Any]] = bump_job["steps"]
+        pr_step: dict[str, Any] = next(
+            step for step in steps if step.get("name") == "Create Pull Request"
+        )
+        script: str = pr_step["run"]
+
+        self.assertEqual(bump_job["permissions"]["actions"], "write")
+        self.assertLess(script.index('run_build "$branch"'), script.index("gh pr create"))
+        self.assertNotIn("gh pr merge", script)
+
 
 if __name__ == "__main__":
     unittest.main()
