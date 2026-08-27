@@ -15,6 +15,7 @@ jobs:
     name: Bump ${{ matrix.recipe }}
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     strategy:
@@ -91,6 +92,46 @@ jobs:
           git add "recipes/${{ matrix.recipe }}/recipe.yaml"
           git commit -m "$title"
           git push --force-with-lease --set-upstream origin "$branch"
+          tested_sha="$(git rev-parse HEAD)"
+
+          run_build() {
+            local ref="$1"
+            local previous_run
+            local run_id=""
+
+            previous_run="$(gh run list \
+              --workflow build.yml \
+              --branch "$ref" \
+              --event workflow_dispatch \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId // empty')"
+            gh workflow run build.yml --ref "$ref"
+
+            for attempt in {1..30}; do
+              run_id="$(gh run list \
+                --workflow build.yml \
+                --branch "$ref" \
+                --event workflow_dispatch \
+                --limit 1 \
+                --json databaseId \
+                --jq '.[0].databaseId // empty')"
+              if [ -n "$run_id" ] && [ "$run_id" != "$previous_run" ]; then
+                break
+              fi
+              sleep 2
+            done
+
+            if [ -z "$run_id" ] || [ "$run_id" = "$previous_run" ]; then
+              echo "Timed out waiting for the validation workflow on $ref" >&2
+              return 1
+            fi
+            gh run watch "$run_id" --exit-status
+          }
+
+          # PRs created with GITHUB_TOKEN need manual approval before their
+          # pull_request workflows run. Validate explicitly before merging.
+          run_build "$branch"
 
           existing_pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
           if [ -n "$existing_pr" ]; then
@@ -105,4 +146,4 @@ jobs:
               --title "$title" \
               --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
           fi
-          gh pr merge "$pr_url" --auto --squash || echo "auto-merge unavailable"
+          gh pr merge "$pr_url" --squash --match-head-commit "$tested_sha"
