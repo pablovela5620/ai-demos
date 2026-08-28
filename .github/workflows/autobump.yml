@@ -35,6 +35,8 @@ jobs:
             npm-package: "@intellectronica/ruler"
           - recipe: opencode
             npm-package: "opencode-ai"
+          - recipe: openwiki
+            npm-package: "openwiki"
     # NB: the package filter lives on the steps, not the job — the `matrix`
     # context is not allowed in job-level `if` (GitHub rejects the whole
     # workflow file: schedules silently never fire, every push logs a

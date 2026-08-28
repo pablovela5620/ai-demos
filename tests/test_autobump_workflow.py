@@ -23,6 +23,17 @@ def load_workflow() -> dict[str, Any]:
 class AutobumpWorkflowTest(unittest.TestCase):
     """Verify a failed PR creation can be retried safely."""
 
+    def test_openwiki_release_updates_are_automatic(self) -> None:
+        """Track the public npm release used by the OpenWiki recipe."""
+        workflow: dict[str, Any] = load_workflow()
+        matrix_rows: list[dict[str, str]] = workflow["jobs"]["bump"]["strategy"][
+            "matrix"
+        ]["include"]
+
+        self.assertIn(
+            {"recipe": "openwiki", "npm-package": "openwiki"}, matrix_rows
+        )
+
     def test_pr_step_reuses_branch_and_existing_pull_request(self) -> None:
         """A rerun must update its deterministic branch instead of failing to push."""
         workflow: dict[str, Any] = load_workflow()

@@ -1,0 +1,40 @@
+context:
+  version: "0.4.3"
+
+package:
+  name: openwiki
+  version: ${{ version }}
+
+source:
+  url: https://registry.npmjs.org/openwiki/-/openwiki-${{ version }}.tgz
+  sha256: 628e7c4c16a0dee8ceaa9726a0f1db7277cde29010dcda16b02455011917ef1b
+
+build:
+  number: 0
+  script: build.sh
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - make
+    - python
+  host:
+    - nodejs >=22
+  run:
+    - nodejs >=22
+
+tests:
+  - package_contents:
+      bin:
+        - openwiki
+  - script:
+      - openwiki integrations list
+      - node -e "const Database = require(process.env.PREFIX + '/lib/node_modules/openwiki/node_modules/better-sqlite3'); new Database(':memory:').close()"
+
+about:
+  homepage: https://github.com/langchain-ai/openwiki
+  repository: https://github.com/langchain-ai/openwiki
+  license: MIT
+  license_file: LICENSE
+  summary: CLI that generates and maintains agent documentation for a codebase
