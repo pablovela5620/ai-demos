@@ -26,6 +26,13 @@ class OpenWikiRecipeTest(unittest.TestCase):
         self.assertEqual(recipe["package"]["name"], "openwiki")
         self.assertEqual(recipe["requirements"]["host"], ["nodejs >=22"])
         self.assertEqual(recipe["requirements"]["run"], ["nodejs >=22"])
+        self.assertEqual(
+            recipe["requirements"]["build"][0],
+            {
+                "if": "linux",
+                "then": ["${{ compiler('c') }}", "${{ compiler('cxx') }}"],
+            },
+        )
         self.assertIn("openwiki", recipe["tests"][0]["package_contents"]["bin"])
         script_tests: list[str] = recipe["tests"][1]["script"]
         self.assertIn("openwiki integrations list", script_tests)

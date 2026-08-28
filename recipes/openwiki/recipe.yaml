@@ -10,13 +10,18 @@ source:
   sha256: 628e7c4c16a0dee8ceaa9726a0f1db7277cde29010dcda16b02455011917ef1b
 
 build:
-  number: 0
+  number: 1
   script: build.sh
 
 requirements:
   build:
-    - ${{ compiler('c') }}
-    - ${{ compiler('cxx') }}
+    # better-sqlite3 can compile through node-gyp when no prebuilt binary is
+    # available. The shared CI variant selects GCC for Linux/CUDA recipes,
+    # but macOS uses the Xcode runner's clang toolchain.
+    - if: linux
+      then:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
     - make
     - python
   host:
