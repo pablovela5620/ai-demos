@@ -1,5 +1,5 @@
 context:
-  version: "2.1.247"
+  version: "2.1.251"
 
 package:
   name: claude-code
@@ -12,15 +12,15 @@ source:
   - if: target_platform == "osx-arm64"
     then:
       url: https://registry.npmjs.org/@anthropic-ai/claude-code-darwin-arm64/-/claude-code-darwin-arm64-${{ version }}.tgz
-      sha256: ed87916671cd37b0dbf02329ddcc028a3bb618dc02ce5da0ca986cd0a534ea7d
+      sha256: cb3ecffa649ea20b78f3b7fe4a7395d7a225a510ae18521f6b65c669ecf4d9fd
   - if: target_platform == "linux-64"
     then:
       url: https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64/-/claude-code-linux-x64-${{ version }}.tgz
-      sha256: c6697aa74f8f6c0a1167fcf800ca976b34b89c0170dead133aead97b1ed18471
+      sha256: 7e2d6d13baccd64cd2d9a8781643ae23a48db009ad746d1df0cfec38d5ed0a44
   - if: target_platform == "linux-aarch64"
     then:
       url: https://registry.npmjs.org/@anthropic-ai/claude-code-linux-arm64/-/claude-code-linux-arm64-${{ version }}.tgz
-      sha256: 43384995766bbc35c7b9f5e034d3b010be20d3c4d70b69a1c7cc4fe29caee54b
+      sha256: 50760f283bf289a8bfb6f25ab86276808fd038b8f724ba5eaffb9b195483846d
 
 build:
   number: 0
