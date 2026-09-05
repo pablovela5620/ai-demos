@@ -1,0 +1,37 @@
+context:
+  version: "0.3.0"
+
+package:
+  name: typer-injector
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/b3/11/7da0c6019c26cb660acc3329b44c3247286469de3dcd94013d0793598ecb/typer_injector-0.3.0.tar.gz
+  sha256: 7fa5b411b86c31aeeb22fc180d0ebf615c2a71c8f2b1dc97ad4d06a4c235b3a5
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - hatchling
+    - hatch-vcs
+  run:
+    - python >=3.13,<3.14
+    - typer >=0.20.0
+
+tests:
+  - python:
+      imports:
+        - typer_injector
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/typer-injector/
+  license: MIT
+  license_file: LICENSE.txt
+  summary: "Dependency injection for typer"

@@ -1,0 +1,43 @@
+context:
+  version: "0.3.7"
+
+package:
+  name: pmd-pytcp
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/84/fb/0acdc66ee6800f83a3972fecbf09520663f8095eb7417ed9949e6949421b/pmd_pytcp-0.3.7.tar.gz
+  sha256: 8861c091f3fae56f89d10136e2cbcfcb108eaf529d09ab9b9894a2910948b138
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - pytcpd = pmd_pytcp.daemon.__main__:main
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=61.0
+  run:
+    - python >=3.13,<3.14
+    - pmd-net-addr ==0.0.3
+    - pmd-net-proto ==0.0.3
+    - typing_extensions >=4.6
+
+tests:
+  - python:
+      imports:
+        - pmd_pytcp
+      python_version: 3.13.*
+  - script:
+      - pytcpd --help
+
+about:
+  homepage: https://pypi.org/project/pmd-pytcp/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Pure-Python, zero-dependency TCP/IP stack \u2014 Ethernet through RFC 9293 TCP \u2014 running in user space on a TAP/TUN interface, embeddable in-process or run as a daemon, with a Berkeley-sockets API."

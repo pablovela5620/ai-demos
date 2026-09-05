@@ -1,0 +1,40 @@
+context:
+  version: "0.0.1"
+
+package:
+  name: opack2
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/b3/ac/8e7d6698282a2130c99fab2fffa3cb1910688ffee16ec36e3d1f71375adf/opack2-0.0.1.tar.gz
+  sha256: 0deb0b5d7094253f631db201f3493094a5821404f736ab0234ba805ee93d57b2
+  patches:
+    - remove-missing-cli.patch
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - arrow
+    - construct
+
+tests:
+  - python:
+      imports:
+        - opack2
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/opack2/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Python library for parsing the opack format"

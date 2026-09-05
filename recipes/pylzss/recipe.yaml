@@ -1,0 +1,39 @@
+context:
+  version: "0.3.4"
+
+package:
+  name: pylzss
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/7d/dc/9ae75ede398b7adf538f2d1dca0f96c645c4e96789f8039340a0ed6a8a8f/pylzss-0.3.4.tar.gz
+  sha256: 16818631742488e53a34fda0d402d80edb2b812e11877801e21a9e5ce9b9db1c
+
+build:
+  number: 0
+  skip: target_platform != "osx-arm64"
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  build:
+    - clang_osx-arm64
+    - compiler-rt_osx-arm64
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools
+    - wheel
+  run:
+    - python >=3.13,<3.14
+
+tests:
+  - python:
+      imports:
+        - lzss
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/pylzss/
+  license: LGPL-3.0-or-later
+  license_file: COPYING.LESSER
+  summary: "LZSS compression algorithm"

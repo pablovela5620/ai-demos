@@ -1,0 +1,102 @@
+context:
+  version: "11.3.1"
+
+package:
+  name: pymobiledevice3
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/97/44/859d8686fb1dc2fb6c99d1dc815caed0362745fb54aa02c0feda8bde9cb3/pymobiledevice3-11.3.1.tar.gz
+  sha256: 02314b0e4e36bfcc6539840a711a9afb1464ede39ed99701e626c5c863a7acbc
+  patches:
+    - verified-https-tss.patch
+
+build:
+  number: 0
+  # First validated device host. Linux/Windows need separate dependency and device tests.
+  skip: target_platform != "osx-arm64"
+  python:
+    entry_points:
+      - pymobiledevice3 = pymobiledevice3.__main__:main
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - construct >=2.9.29
+    - construct-typing >=0.8.0
+    - asn1
+    - coloredlogs
+    - ipython
+    - bpylist2 >=4.0.1
+    - pygments
+    - hexdump
+    - daemonize
+    - gpxpy !=1.6.0,<1.7.0
+    - pykdebugparser >=1.2.7
+    - pyusb >=1.2.1
+    - tqdm
+    - requests
+    - xonsh
+    - parameter-decorators
+    - packaging
+    - typing_extensions >=4.1.0
+    - pygnuutils >=0.0.7
+    - cryptography >=41.0.1
+    - pycrashreport >=2.0.0
+    - fastapi >=0.93.0
+    - uvicorn >=0.15.0
+    - wsproto
+    - pillow
+    - questionary >=2.0.0
+    - ipsw-parser >=1.6.0
+    - ifaddr
+    - hyperframe
+    - srptools
+    - qh3 <2,>=1.0.0
+    - developer-disk-image >=0.3.0
+    - opack2
+    - psutil
+    - pytun-pmd3 >=3.0.3
+    - prompt_toolkit
+    - python-pcapng >=2.1.1
+    - plumbum
+    - pyimg4 >=0.8.8
+    - pyiosbackup >=0.2.4
+    - typer >=0.25
+    - typer-injector >=0.2.0
+    - defusedxml
+    - pmd-pytcp >=0.3.7
+    - asgiwebdav >=2.0.1
+    - backports.zstd
+
+tests:
+  - package_contents:
+      bin:
+        - pymobiledevice3
+  - python:
+      imports:
+        - pymobiledevice3
+      python_version: 3.13.*
+  - script:
+      - pymobiledevice3 --help
+      - pymobiledevice3 developer core-device screen-capture screenshot --help
+      - pymobiledevice3 developer core-device universal-hid-service tap --help
+
+about:
+  homepage: https://github.com/doronz88/pymobiledevice3
+  documentation: https://doronz88.github.io/pymobiledevice3/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Pure python3 implementation for working with iDevices (iPhone, etc...)"
+  description: |
+    Physical iOS device management, screenshots, and touch input.
+    This initial recipe targets Apple Silicon macOS and Python 3.13.
+    Device trust, Developer Mode, and developer-image setup are host/device
+    prerequisites; the package does not change them during installation.

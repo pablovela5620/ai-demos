@@ -1,0 +1,37 @@
+context:
+  version: "2.1.1"
+
+package:
+  name: python-pcapng
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/3c/2f/72534730a81205cd3ca32d65b4760c927e6ffc69a3d06ff3d1edda64ae3e/python-pcapng-2.1.1.tar.gz
+  sha256: 6477e72513165954e56d5836ebbd43ac7f8d28c4640f78d63d6506d1692ddc74
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=42
+    - wheel
+    - setuptools-scm >=3.4
+  run:
+    - python >=3.13,<3.14
+
+tests:
+  - python:
+      imports:
+        - pcapng
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/python-pcapng/
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: "Library to read/write the pcap-ng format used by various packet sniffers."

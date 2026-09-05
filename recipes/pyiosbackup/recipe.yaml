@@ -1,0 +1,46 @@
+context:
+  version: "0.2.4"
+
+package:
+  name: pyiosbackup
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/46/ab/c7c3caf6785ced43d02c8c37be3c84720c40d6a9b237eb2ff560af4114e1/pyiosbackup-0.2.4.tar.gz
+  sha256: 10b4d2a11c9bedc93a5467cad3addbe18bc2dc434156920e7223226ed4d0beb7
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - pyiosbackup = pyiosbackup.__main__:main
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - bpylist2 >=4.0.1
+    - cryptography >=35.0.0
+    - packaging
+    - construct
+    - click
+
+tests:
+  - python:
+      imports:
+        - pyiosbackup
+      python_version: 3.13.*
+  - script:
+      - pyiosbackup --help
+
+about:
+  homepage: https://pypi.org/project/pyiosbackup/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "A python parser for iOS backups"

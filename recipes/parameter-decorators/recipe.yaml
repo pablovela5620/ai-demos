@@ -1,0 +1,36 @@
+context:
+  version: "0.0.2"
+
+package:
+  name: parameter-decorators
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/40/b9/03b5e409930cb4cff0f25f6f3199145f4319a88d5f9be7ee17882359f72d/parameter_decorators-0.0.2.tar.gz
+  sha256: 499ec96e71394705be9e3eeb28542aab4875694042516c31051d5dcb0488028e
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools
+    - wheel
+  run:
+    - python >=3.13,<3.14
+
+tests:
+  - python:
+      imports:
+        - parameter_decorators
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/parameter-decorators/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Handy decorators for converting parameters"

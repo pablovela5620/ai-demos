@@ -1,0 +1,43 @@
+context:
+  version: "2.0.0"
+
+package:
+  name: pycrashreport
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/aa/9c/1e1c2d84f746972cbe4d5e65f816008c64e427fc680f55115aa313683c23/pycrashreport-2.0.0.tar.gz
+  sha256: 31d5e32faa3a047fe01e923bde3eaf1ec86b23e264babf2fc8f7b61fe4812342
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - pycrashreport = pycrashreport.__main__:cli
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - typer
+
+tests:
+  - python:
+      imports:
+        - pycrashreport
+      python_version: 3.13.*
+  - script:
+      - pycrashreport --help
+
+about:
+  homepage: https://pypi.org/project/pycrashreport/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Pure python3 for parsing Apple's crash reports"

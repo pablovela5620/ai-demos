@@ -1,0 +1,43 @@
+context:
+  version: "1.0.1"
+
+package:
+  name: srptools
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/a1/8a/d62af55a56d56216e96563bc9c29c2d16d957317742c2e5bd4e79a524b06/srptools-1.0.1.tar.gz
+  sha256: 7fa4337256a1542e8f5bb4bed19e1d9aea98fe5ff9baf76693342a1dd6ac7c96
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - srptools = srptools.cli:main
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - click
+    - six
+
+tests:
+  - python:
+      imports:
+        - srptools
+      python_version: 3.13.*
+  - script:
+      - srptools --help
+
+about:
+  homepage: https://pypi.org/project/srptools/
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: "Tools to implement Secure Remote Password (SRP) authentication"

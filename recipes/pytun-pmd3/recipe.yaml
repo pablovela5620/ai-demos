@@ -1,0 +1,37 @@
+context:
+  version: "3.0.3"
+
+package:
+  name: pytun-pmd3
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/5e/8a/6e73c70ddf5fdf9cf359cdc458f38cf795c4a653c870a4a49c8768e5db86/pytun_pmd3-3.0.3.tar.gz
+  sha256: 7fa822092139b4b77e08fad9233dbd4a6fcca2cf2423b0775db962ca5e87a017
+
+build:
+  number: 0
+  skip: target_platform != "osx-arm64"
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
+    - wheel
+  run:
+    - python >=3.13,<3.14
+
+tests:
+  - python:
+      imports:
+        - pytun_pmd3
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/pytun-pmd3/
+  license: MIT
+  license_file: LICENSE
+  summary: "python-pytun fork with darwin and windows support (IPv6-ONLY)"

@@ -1,0 +1,45 @@
+context:
+  version: "1.2.8"
+
+package:
+  name: pykdebugparser
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/6b/32/9838c8e756717fecf47f1aedd1e21ec70dbe1e4bd6d96f9060d7274aae72/pykdebugparser-1.2.8.tar.gz
+  sha256: fa692b469874c2bfb830f55f854648e5f5641353e3b7be16573286ef0c05fabc
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - pykdebugparser = pykdebugparser.__main__:cli
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - construct
+    - pygments
+    - click
+    - termcolor
+
+tests:
+  - python:
+      imports:
+        - pykdebugparser
+      python_version: 3.13.*
+  - script:
+      - pykdebugparser --help
+
+about:
+  homepage: https://pypi.org/project/pykdebugparser/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Python parser for kdebug events"

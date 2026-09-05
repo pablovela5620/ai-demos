@@ -1,0 +1,34 @@
+context:
+  version: "4.1.1"
+
+package:
+  name: bpylist2
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/ca/34/eb90ff6be953f6e4df08d4e8c0b761bea144242b6d711e922113411cc631/bpylist2-4.1.1.tar.gz
+  sha256: 0cc63284aee42f5c7e0ec87f8f59cdd35aaed05ad12d866b1868ea0c0caaafe1
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - poetry-core
+  run:
+    - python >=3.13,<3.14
+
+tests:
+  - python:
+      imports:
+        - bpylist2
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/bpylist2/
+  license: MIT
+  summary: "Parse and generate NSKeyedArchiver archives"

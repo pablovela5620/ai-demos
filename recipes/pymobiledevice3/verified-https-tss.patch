@@ -1,0 +1,8 @@
+--- a/pymobiledevice3/restore/tss.py
++++ b/pymobiledevice3/restore/tss.py
+@@ -49 +49 @@
+-TSS_CONTROLLER_ACTION_URL = "http://gs.apple.com/TSS/controller?action=2"
++TSS_CONTROLLER_ACTION_URL = "https://gs.apple.com/TSS/controller?action=2"
+@@ -1200 +1200 @@
+-                    TSS_CONTROLLER_ACTION_URL, headers=headers, data=plistlib.dumps(self._request), verify=False
++                    TSS_CONTROLLER_ACTION_URL, headers=headers, data=plistlib.dumps(self._request), verify=True

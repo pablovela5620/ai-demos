@@ -1,0 +1,43 @@
+context:
+  version: "0.0.2"
+
+package:
+  name: remotezip2
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/3f/47/94335875a4d5339f64943c1a68900f59a91ad987ab8fcd8e5201839e7cc5/remotezip2-0.0.2.tar.gz
+  sha256: db38fb14d0c297af6da8756808bb25f9d3b2c23c7639a14f7a74794b2fc9a261
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - python-remotezip2 = remotezip2:main
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - requests
+
+tests:
+  - python:
+      imports:
+        - remotezip2
+      python_version: 3.13.*
+  - script:
+      - python-remotezip2 --help
+
+about:
+  homepage: https://pypi.org/project/remotezip2/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "Fork of python-remotezip"

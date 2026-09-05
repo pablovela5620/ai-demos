@@ -1,0 +1,39 @@
+context:
+  version: "0.3.0"
+
+package:
+  name: developer-disk-image
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/52/f5/16c742e98191761d0925ed424468e3bec14503644c84851046602667d3c3/developer_disk_image-0.3.0.tar.gz
+  sha256: 1fb9841dcc5cf81e697b6e0a9c14909c059c1893d675b38398a91c08cb7ba8bc
+  patches:
+    - remove-missing-cli.patch
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - requests
+
+tests:
+  - python:
+      imports:
+        - developer_disk_image.repo
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/developer-disk-image/
+  license: GPL-3.0-or-later
+  summary: "Download DeveloperDiskImage ans Personalized images from GitHub"

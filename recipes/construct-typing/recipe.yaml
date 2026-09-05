@@ -1,0 +1,39 @@
+context:
+  version: "0.8.1"
+
+package:
+  name: construct-typing
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/61/de/de378332a7cb2f62df134e0b5915a0fea939219c80ecee99b29da8ba49c7/construct_typing-0.8.1.tar.gz
+  sha256: b3c33246b83f187f21fbfa9e229cf7225fe42823f3d598328b973c844071c456
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=83.0.0
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - arrow >=1.0.0
+    - construct ==2.10.70
+    - typing_extensions >=4.6.0
+
+tests:
+  - python:
+      imports:
+        - construct_typed
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/construct-typing/
+  license: MIT
+  license_file: LICENSE
+  summary: "Extension for the python package 'construct' that adds typing features"

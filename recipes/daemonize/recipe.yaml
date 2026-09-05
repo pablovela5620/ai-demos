@@ -1,0 +1,36 @@
+context:
+  version: "2.5.0"
+
+package:
+  name: daemonize
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/8c/20/96f7dbc23812cfe4cf479c87af3e4305d0d115fd1fffec32ddeee7b9c82b/daemonize-2.5.0.tar.gz
+  sha256: dd026e4ff8d22cb016ed2130bc738b7d4b1da597ef93c074d2adb9e4dea08bc3
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools
+    - wheel
+  run:
+    - python >=3.13,<3.14
+
+tests:
+  - python:
+      imports:
+        - daemonize
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/daemonize/
+  license: MIT
+  license_file: LICENSE
+  summary: "Library to enable your code run as a daemon process on Unix-like systems."

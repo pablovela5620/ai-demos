@@ -1,0 +1,49 @@
+context:
+  version: "1.7.5"
+
+package:
+  name: ipsw-parser
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/ab/ca/40960ace6e13f05101e05ad9695c54969d4943588930c27dca153db56d82/ipsw_parser-1.7.5.tar.gz
+  sha256: e49682388731cc9c2a275bf0d2b35746d7619bd352e4a46189efb2f50acc3e1f
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - ipsw-parser = ipsw_parser.__main__:cli
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - construct >=2.9.29
+    - coloredlogs
+    - plumbum
+    - pyimg4 >=0.8.8
+    - requests
+    - remotezip2
+    - typer
+
+tests:
+  - python:
+      imports:
+        - ipsw_parser
+      python_version: 3.13.*
+  - script:
+      - ipsw-parser --help
+
+about:
+  homepage: https://pypi.org/project/ipsw-parser/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "python3 utility for parsing and extracting data from IPSW"

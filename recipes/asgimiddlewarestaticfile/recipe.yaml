@@ -1,0 +1,38 @@
+context:
+  version: "0.7.0"
+
+package:
+  name: asgimiddlewarestaticfile
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/d7/25/14ec3488ee466dd2b3c63e3cdb1f9b032d90c0c9d65ca68d25c59b74bc22/asgimiddlewarestaticfile-0.7.0.tar.gz
+  sha256: 70935ab3bb9cdde5cf96dcc4eed2fce39c9cf51ec371490265e673df099ddf72
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=61.0
+    - wheel
+  run:
+    - python >=3.13,<3.14
+    - aiofiles >=25.1.0
+    - asgiref
+
+tests:
+  - python:
+      imports:
+        - asgi_middleware_static_file
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/asgimiddlewarestaticfile/
+  license: MIT
+  license_file: LICENSE
+  summary: "ASGI Middleware for serving Static File."

@@ -1,0 +1,12 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -34,9 +34,6 @@
+ "Homepage" = "https://github.com/doronz88/opack2"
+ "Bug Reports" = "https://github.com/doronz88/opack2/issues"
+ 
+-[project.scripts]
+-opack = "opack.__main__:cli"
+-
+ [tool.setuptools.packages.find]
+ exclude = ["docs*", "tests*"]
+ 

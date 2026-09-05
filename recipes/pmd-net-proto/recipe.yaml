@@ -1,0 +1,37 @@
+context:
+  version: "0.0.3"
+
+package:
+  name: pmd-net-proto
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/59/ec/eed1b9570cec3e30b993dee84fa5d16be3399189ffce8c0b46373727d20e/pmd_net_proto-0.0.3.tar.gz
+  sha256: e23d7d68cd13399ff2bf0613f9756e221ead6fd54010cf85186c2ab650631cd7
+
+build:
+  number: 0
+  noarch: python
+  script: python -m pip install . --no-deps --no-build-isolation -v
+
+requirements:
+  host:
+    - python 3.13.*
+    - pip
+    - setuptools >=61.0
+  run:
+    - python >=3.13,<3.14
+    - pmd-net-addr ==0.0.3
+    - typing_extensions >=4.6
+
+tests:
+  - python:
+      imports:
+        - pmd_net_proto
+      python_version: 3.13.*
+
+about:
+  homepage: https://pypi.org/project/pmd-net-proto/
+  license: GPL-3.0-or-later
+  license_file: LICENSE
+  summary: "The network-protocol packet parse/assemble layer of the PyTCP stack \u2014 Ethernet through TCP/UDP \u2014 fully usable on its own."
