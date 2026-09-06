@@ -1,0 +1,13 @@
+[workspace]
+name = "beszel-hub"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+preview = ["pixi-build"]
+
+[package]
+name = "beszel-hub"
+version = "0.19.0"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "==0.4.6" }
+channels = ["https://prefix.dev/pixi-build-backends", "conda-forge"]

@@ -1,0 +1,170 @@
+diff --git a/internal/entities/system/system.go b/internal/entities/system/system.go
+index 3ccaea3..cfcb51e 100644
+--- a/internal/entities/system/system.go
++++ b/internal/entities/system/system.go
+@@ -166,6 +166,7 @@ type Info struct {
+ 	AgentVersion  string  `json:"v" cbor:"10,keyasint"`
+ 	Podman        bool    `json:"p,omitempty" cbor:"11,keyasint,omitempty"` // deprecated - moved to Details struct
+ 	GpuPct        float64 `json:"g,omitempty" cbor:"12,keyasint,omitempty"`
++	GPUCount      int     `json:"gc" cbor:"-"` // Hub-derived count from the latest GPU sample
+ 	DashboardTemp float64 `json:"dt,omitempty" cbor:"13,keyasint,omitempty"`
+ 	Os            Os      `json:"os,omitempty" cbor:"14,keyasint,omitempty"` // deprecated - moved to Details struct
+ 	// LoadAvg1       float64 `json:"l1,omitempty" cbor:"15,keyasint,omitempty"`  // deprecated - use `la` array instead
+diff --git a/internal/hub/systems/system.go b/internal/hub/systems/system.go
+index 1bcdb8b..a234571 100644
+--- a/internal/hub/systems/system.go
++++ b/internal/hub/systems/system.go
+@@ -271,6 +271,7 @@ func (sys *System) createRecords(data *system.CombinedData) (*core.Record, error
+ 		}
+ 
+ 		// update system record (do this last because it triggers alerts and we need above records to be inserted first)
++		data.Info.GPUCount = len(data.Stats.GPUData)
+ 		systemRecord.Set("status", up)
+ 		systemRecord.Set("info", data.Info)
+ 		if err := txApp.SaveNoValidate(systemRecord); err != nil {
+diff --git a/internal/site/src/components/systems-table/systems-table-columns.tsx b/internal/site/src/components/systems-table/systems-table-columns.tsx
+index 355ed53..dac1872 100644
+--- a/internal/site/src/components/systems-table/systems-table-columns.tsx
++++ b/internal/site/src/components/systems-table/systems-table-columns.tsx
+@@ -23,6 +23,7 @@ import {
+ 	WifiIcon,
+ } from "lucide-react"
+ import { memo, useMemo, useRef, useState } from "react"
++import { overviewGpuUsage } from "./gpu-usage"
+ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+ import { isReadOnlyUser, pb } from "@/lib/api"
+ import { BatteryState, ConnectionType, connectionTypeLabels, MeterState, SystemStatus } from "@/lib/enums"
+@@ -193,13 +194,13 @@ export function SystemsTableColumns(viewMode: "table" | "grid"): ColumnDef<Syste
+ 			header: sortableHeader,
+ 		},
+ 		{
+-			accessorFn: ({ info }) => info.g || undefined,
++			accessorFn: overviewGpuUsage,
+ 			id: "gpu",
+ 			name: () => "GPU",
+ 			cell: (info) => {
+ 				const val = info.getValue() as number | undefined
+ 				if (val === undefined) {
+-					return null
++					return <span className="text-muted-foreground">—</span>
+ 				}
+ 				return TableCellWithMeter(info)
+ 			},
+diff --git a/internal/site/src/types.d.ts b/internal/site/src/types.d.ts
+index 6a00178..1cef3a1 100644
+--- a/internal/site/src/types.d.ts
++++ b/internal/site/src/types.d.ts
+@@ -68,6 +68,8 @@ export interface SystemInfo {
+ 	p?: boolean
+ 	/** highest gpu utilization */
+ 	g?: number
++	/** number of GPUs reported in the latest sample (added by the Hub) */
++	gc?: number
+ 	/** dashboard display temperature */
+ 	dt?: number
+ 	/** operating system */
+diff --git a/internal/hub/systems/gpu_overview_test.go b/internal/hub/systems/gpu_overview_test.go
+new file mode 100644
+index 0000000..ababbb7
+--- /dev/null
++++ b/internal/hub/systems/gpu_overview_test.go
+@@ -0,0 +1,64 @@
++//go:build testing
++
++package systems_test
++
++import (
++	"fmt"
++	"net/http"
++	"testing"
++
++	"github.com/henrygd/beszel/internal/entities/system"
++	"github.com/henrygd/beszel/internal/tests"
++	pbtests "github.com/pocketbase/pocketbase/tests"
++	"github.com/stretchr/testify/require"
++)
++
++func TestOverviewReportsCurrentGPUCount(t *testing.T) {
++	// Successive reports from the same agent must replace presence, not retain
++	// the last detected device after collection becomes unavailable.
++	for _, tc := range []struct {
++		name  string
++		gpus  map[string]system.GPUData
++		usage float64
++		count int
++	}{
++		{"idle device", map[string]system.GPUData{"device-a": {Name: "GPU", Usage: 0}}, 0, 1},
++		{"two idle devices", map[string]system.GPUData{"device-a": {}, "device-b": {}}, 0, 2},
++		{"two busy devices keep aggregate", map[string]system.GPUData{"device-a": {Usage: 11}, "device-b": {Usage: 73.5}}, 73.5, 2},
++		{"empty collection", map[string]system.GPUData{}, 0, 0},
++		{"no GPU collection", nil, 0, 0},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			hub, user := tests.GetHubWithUser(t)
++			defer hub.Cleanup()
++			token, err := user.NewAuthToken()
++			require.NoError(t, err)
++			records, err := tests.CreateSystems(hub, 1, user.Id, "paused")
++			require.NoError(t, err)
++			monitored, err := hub.GetSystemManager().GetSystem(records[0].Id)
++			require.NoError(t, err)
++			_, err = monitored.CreateRecords(&system.CombinedData{
++				Stats: system.Stats{GPUData: map[string]system.GPUData{"previous": {}}},
++			})
++			require.NoError(t, err)
++			_, err = monitored.CreateRecords(&system.CombinedData{
++				Info:  system.Info{GpuPct: tc.usage},
++				Stats: system.Stats{GPUData: tc.gpus},
++			})
++			require.NoError(t, err)
++			expected := []string{fmt.Sprintf(`"gc":%d`, tc.count), `"status":"up"`}
++			if tc.usage > 0 {
++				expected = append(expected, `"g":73.5`)
++			}
++			scenario := tests.ApiScenario{
++				Method:          http.MethodGet,
++				URL:             "/api/collections/systems/records/" + records[0].Id,
++				Headers:         map[string]string{"Authorization": token},
++				ExpectedStatus:  http.StatusOK,
++				ExpectedContent: expected,
++				TestAppFactory:  func(testing.TB) *pbtests.TestApp { return hub.TestApp },
++			}
++			scenario.Test(t)
++		})
++	}
++}
+diff --git a/internal/site/src/components/systems-table/gpu-usage.ts b/internal/site/src/components/systems-table/gpu-usage.ts
+new file mode 100644
+index 0000000..ee04443
+--- /dev/null
++++ b/internal/site/src/components/systems-table/gpu-usage.ts
+@@ -0,0 +1,6 @@
++import type { SystemRecord } from "@/types"
++
++/** GPU utilization for the overview, or undefined when no reading is available. */
++export function overviewGpuUsage({ info, status }: Pick<SystemRecord, "info" | "status">): number | undefined {
++	return status === "up" && (info.gc ?? 0) > 0 ? (info.g ?? 0) : undefined
++}
+diff --git a/internal/site/src/components/systems-table/gpu-usage.test.ts b/internal/site/src/components/systems-table/gpu-usage.test.ts
+new file mode 100644
+index 0000000..d659a43
+--- /dev/null
++++ b/internal/site/src/components/systems-table/gpu-usage.test.ts
+@@ -0,0 +1,17 @@
++import { expect, test } from "bun:test"
++import type { SystemRecord } from "@/types"
++import { overviewGpuUsage } from "./gpu-usage"
++
++test.each([
++	["one idle GPU", "up", { gc: 1, g: 0 }, 0],
++	["idle GPU with zero omitted from JSON", "up", { gc: 1 }, 0],
++	["two idle GPUs", "up", { gc: 2, g: 0 }, 0],
++	["existing aggregate of two busy GPUs", "up", { gc: 2, g: 73.5 }, 73.5],
++	["no detected GPU", "up", { gc: 0, g: 0 }, undefined],
++	["no agent report", "pending", {}, undefined],
++	["offline GPU with stale utilization", "down", { gc: 1, g: 83 }, undefined],
++	["paused GPU", "paused", { gc: 1, g: 12 }, undefined],
++	["missing collection with stale aggregate", "up", { gc: 0, g: 25 }, undefined],
++] as const)("%s", (_, status, info, expected) => {
++	expect(overviewGpuUsage({ status, info } as Pick<SystemRecord, "info" | "status">)).toBe(expected)
++})
