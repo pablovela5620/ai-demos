@@ -48,6 +48,10 @@ jobs:
           CONDA_OVERRIDE_CUDA: "13"
         run: pixi run ci-build
 
+      - name: Package the prebuilt Windows Beszel agent
+        if: matrix.target == 'linux-64'
+        run: pixi run ci-build-beszel-windows
+
       - name: Check for packages
         id: check
         shell: bash

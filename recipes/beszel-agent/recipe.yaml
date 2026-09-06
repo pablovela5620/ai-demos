@@ -1,0 +1,53 @@
+context:
+  version: "0.19.0"
+
+package:
+  name: beszel-agent
+  version: ${{ version }}
+
+source:
+  - if: target_platform == "linux-64"
+    then:
+      url: https://github.com/henrygd/beszel/releases/download/v${{ version }}/beszel-agent_linux_amd64.tar.gz
+      sha256: 0f85891b290146b336f5c813d1e535e992da35ee79de876e920e2ec748ab732c
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://github.com/henrygd/beszel/releases/download/v${{ version }}/beszel-agent_linux_arm64.tar.gz
+      sha256: 3a0b0c471506a02d8de79d03f7a45132b54010adc105c6208ffe8b8aedc1da38
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://github.com/henrygd/beszel/releases/download/v${{ version }}/beszel-agent_darwin_arm64.tar.gz
+      sha256: a5a8ba46a88610f5da4eaaa32f184642e06f20885f7e6e1ea3607596aef9cb1b
+  - if: target_platform == "win-64"
+    then:
+      url: https://github.com/henrygd/beszel/releases/download/v${{ version }}/beszel-agent_windows_amd64.zip
+      sha256: 2bd3d9a7bc859c005dce2192780de9d4054e2904f14ba2fd768d811acaa3c326
+  - url: https://raw.githubusercontent.com/henrygd/beszel/v${{ version }}/LICENSE
+    sha256: 0e0b56361282fb38d9530deea9ed46a4c73763cdf3fda36e526a3b70d0e68301
+
+build:
+  number: 0
+  skip: target_platform not in ["linux-64", "linux-aarch64", "osx-arm64", "win-64"]
+  script:
+    file: ${{ "build.bat" if build_platform == "win-64" else "build.sh" }}
+  dynamic_linking:
+    binary_relocation: false
+
+requirements:
+  run:
+    - if: osx
+      then: __osx >=13.0
+
+tests:
+  - package_contents:
+      bin:
+        - beszel-agent
+  - script:
+      - beszel-agent --version
+
+about:
+  homepage: https://beszel.dev
+  repository: https://github.com/henrygd/beszel
+  license: MIT
+  license_file: LICENSE
+  summary: Lightweight native monitoring agent for Beszel

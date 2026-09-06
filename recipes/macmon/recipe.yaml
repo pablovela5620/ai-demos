@@ -1,0 +1,37 @@
+context:
+  version: "0.8.2"
+
+package:
+  name: macmon
+  version: ${{ version }}
+
+source:
+  url: https://github.com/vladkens/macmon/releases/download/v${{ version }}/macmon-v${{ version }}.tar.gz
+  sha256: 588d5bde79885ba36f693e5150911c10c3ad208a2e418a3f2aa827ac84a2d973
+
+build:
+  number: 0
+  skip: target_platform != "osx-arm64"
+  script:
+    - mkdir -p "$PREFIX/bin"
+    - install -m 755 macmon "$PREFIX/bin/macmon"
+  dynamic_linking:
+    binary_relocation: false
+
+requirements:
+  run:
+    - __osx >=11.0
+
+tests:
+  - package_contents:
+      bin:
+        - macmon
+  - script:
+      - macmon --version
+
+about:
+  homepage: https://github.com/vladkens/macmon
+  repository: https://github.com/vladkens/macmon
+  license: MIT
+  license_file: LICENSE
+  summary: Apple Silicon CPU and GPU monitoring without sudo
