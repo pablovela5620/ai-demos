@@ -1,23 +1,35 @@
 context:
   name: gsplat
-  version: "1.5.3"
+  version: "1.6.0"
+  # The v1.6.0 version bump commit ("Update v1.6.0 and bump version", 2026-08-14).
+  # Upstream has not published 1.6.0 to PyPI, so the package is built from git.
+  # examples-monorepo's gauss-surf needs 1.6.0 (extra_signals); vistadream stays on 1.5.3.
+  rev: c3d59bbb54f91d1c93f1a80dc86960c696b4a059
 
 package:
   name: ${{ name }}
   version: ${{ version }}
 
 source:
-  url: https://files.pythonhosted.org/packages/6d/94/a0963873708223385ac926112dc3e40ab08297784ac53d95309b4cb5a801/gsplat-${{ version }}.tar.gz
-  sha256: 343f080c470e891ba3c697c03bdf0952cb982d1d535fdc24adb23c2cb4fba906
+  # rattler-build checks out the submodules (gsplat/cuda/csrc/third_party/glm) with the repo.
+  git: https://github.com/nerfstudio-project/gsplat.git
+  rev: ${{ rev }}
 
 build:
-  number: 1
-  string: py312_torch212_cuda130_h${{ hash }}_1
-  skip: target_platform != "linux-64" or cuda_compiler == "None" or cuda_compiler_version != "13.0"
+  number: 0
+  string: py312_torch212_cuda130_h${{ hash }}_${{ build_number }}
+  # One CUDA 13.0 variant for linux-64 and linux-aarch64; the zipped 12.9 variant is skipped.
+  skip: target_platform == "osx-arm64" or cuda_compiler == "None" or cuda_compiler_version != "13.0"
   script:
-    - export TORCH_CUDA_ARCH_LIST="8.6;12.0+PTX"
-    - export MAX_JOBS=8
-    - export CPU_COUNT=8
+    # linux-64: RTX 3060 (8.6), RTX 4090 (8.9), H100 (9.0), RTX 5090 (12.0) + compute_120 PTX.
+    - if: target_platform == "linux-64"
+      then: export TORCH_CUDA_ARCH_LIST="8.6;8.9;9.0;12.0+PTX"
+    # linux-aarch64: Jetson Orin (8.7), DGX Spark GB10 (12.1) + compute_121 PTX. Grace-Hopper (9.0) and
+    # Jetson Thor (11.0) were dropped on purpose: the 4-arch build took 5 h 39 min on the 4-core hosted
+    # runner against a 6 h job limit. Add them back with a bigger runner, not here.
+    - if: target_platform == "linux-aarch64"
+      then: export TORCH_CUDA_ARCH_LIST="8.7;12.1+PTX"
+    - export MAX_JOBS=${CPU_COUNT:-4}
     - ${{ PYTHON }} -m pip install . --no-deps --no-build-isolation -v
   dynamic_linking:
     missing_dso_allowlist:
@@ -62,9 +74,17 @@ requirements:
     - jaxtyping
     - rich >=12
     - ninja
+    # New in 1.6.0 INSTALL_REQUIRES: NVTX range markers.
+    - nvtx
     # gsplat/cuda/_backend.py imports `packaging` lazily on the first CUDA
     # call — absent from the sdist metadata, caught by a real-GPU smoke test.
     - packaging
+
+tests:
+  - python:
+      imports:
+        - gsplat
+      pip_check: false
 
 about:
   homepage: https://github.com/nerfstudio-project/gsplat
