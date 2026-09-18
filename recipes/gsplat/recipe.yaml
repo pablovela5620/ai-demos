@@ -24,9 +24,11 @@ build:
     # linux-64: RTX 3060 (8.6), RTX 4090 (8.9), H100 (9.0), RTX 5090 (12.0) + compute_120 PTX.
     - if: target_platform == "linux-64"
       then: export TORCH_CUDA_ARCH_LIST="8.6;8.9;9.0;12.0+PTX"
-    # linux-aarch64: Jetson Orin (8.7), Grace-Hopper (9.0), Jetson Thor (11.0), DGX Spark GB10 (12.1) + compute_121 PTX.
+    # linux-aarch64: Jetson Orin (8.7), DGX Spark GB10 (12.1) + compute_121 PTX. Grace-Hopper (9.0) and
+    # Jetson Thor (11.0) were dropped on purpose: the 4-arch build took 5 h 39 min on the 4-core hosted
+    # runner against a 6 h job limit. Add them back with a bigger runner, not here.
     - if: target_platform == "linux-aarch64"
-      then: export TORCH_CUDA_ARCH_LIST="8.7;9.0;11.0;12.1+PTX"
+      then: export TORCH_CUDA_ARCH_LIST="8.7;12.1+PTX"
     - export MAX_JOBS=${CPU_COUNT:-4}
     - ${{ PYTHON }} -m pip install . --no-deps --no-build-isolation -v
   dynamic_linking:
