@@ -16,7 +16,7 @@ source:
   rev: ${{ rev }}
 
 build:
-  number: 0
+  number: 1
   string: py312_torch212_cuda130_h${{ hash }}_${{ build_number }}
   # One CUDA 13.0 variant for linux-64 and linux-aarch64; the zipped 12.9 variant is skipped.
   skip: target_platform == "osx-arm64" or cuda_compiler == "None" or cuda_compiler_version != "13.0"
@@ -45,7 +45,7 @@ requirements:
     - ${{ compiler('c') }}
     - ninja
   host:
-    - python ==3.12
+    - python 3.12.*
     - pytorch-gpu >=2.12,<2.13
     - cuda-version ==13.0
     - cuda-cudart-dev
@@ -68,7 +68,7 @@ requirements:
     - setuptools
     - pip
   run:
-    - python ==3.12
+    - python 3.12.*
     - pytorch-gpu >=2.12,<2.13
     - numpy
     - jaxtyping
