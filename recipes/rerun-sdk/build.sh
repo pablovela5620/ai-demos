@@ -9,6 +9,8 @@ if (( CARGO_BUILD_JOBS > 8 )); then
     export CARGO_BUILD_JOBS=8
 fi
 unset CI
+# Yarn also detects GITHUB_ACTIONS; the release workspace needs lockfile migration.
+export YARN_ENABLE_IMMUTABLE_INSTALLS=false
 
 export CC_wasm32_unknown_unknown=clang
 export CXX_wasm32_unknown_unknown=clang++
@@ -18,6 +20,8 @@ export PIXI_PROJECT_ROOT="$PWD"
 export PYTHONPATH="$PWD/rerun_pixi_env/src${PYTHONPATH:+:$PYTHONPATH}"
 "$PYTHON" -c 'from rerun_pixi_env import ensure_pyo3_build_cfg; ensure_pyo3_build_cfg()'
 
+# Resolve notebook dependencies before the expensive Rust compilation.
+yarn --cwd rerun_js install
 cargo-bundle-licenses --format yaml --output THIRDPARTY.yml
 
 run_wasm_build() {
@@ -33,7 +37,6 @@ cp target/aarch64-unknown-linux-gnu/release/rerun rerun_py/rerun_sdk/rerun_cli/r
 maturin build --locked --release --manifest-path rerun_py/Cargo.toml --target aarch64-unknown-linux-gnu --features pypi --interpreter "$PYTHON" --out sdk-wheels
 "$PYTHON" -m installer --prefix "$PREFIX" sdk-wheels/*.whl
 
-yarn --cwd rerun_js install
 run_wasm_build yarn --cwd rerun_js/web-viewer run build
 "$PYTHON" -m build --wheel --no-isolation --outdir notebook-wheels rerun_notebook
 "$PYTHON" -m installer --prefix "$PREFIX" notebook-wheels/*.whl
