@@ -1,15 +1,24 @@
 context:
   version: "0.38.1"
+  release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-sdk-0.38.1-av1arm64-wheels
 
 package:
   name: rerun-sdk
   version: ${{ version }}
 
 source:
-  url: https://github.com/rerun-io/rerun/archive/refs/tags/${{ version }}.tar.gz
-  sha256: 280a79778f7329598f3f858e93de179fcdb77ca0b95e2d1d0fb615cb420ae74d
-  patches:
-    - rerun-0.38.1-av1-arm64.patch
+  - url: ${{ release }}/rerun_sdk-${{ version }}-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    sha256: 8d5ee9b10e0ce5da43b79d9ca25bce90271f2dcbbdb98b20d5f59760bc0c6795
+    file_name: rerun_sdk-${{ version }}-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+  - url: ${{ release }}/rerun_notebook-${{ version }}-py2.py3-none-any.whl
+    sha256: b475af14dfa2bb66a5839ae6cbd98fb51b4c554f2e4913598fd19655e6afb849
+    file_name: rerun_notebook-${{ version }}-py2.py3-none-any.whl
+  - url: ${{ release }}/LICENSE-MIT
+    sha256: 7d3db59468f92d70f176170deacf8ac6858b6d78010a30ae01eba42bac302940
+  - url: ${{ release }}/LICENSE-APACHE
+    sha256: 8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90
+  - url: ${{ release }}/THIRDPARTY.yml
+    sha256: 7d0872c94e63ef2de64bed1e5cdfd4f5565e445baa82fe84f40595e739dbe8df
 
 build:
   number: 0
@@ -22,35 +31,15 @@ build:
       - rerun = rerun_cli.__main__:main
 
 requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - rust ==1.96.0
-    - rust-std-wasm32-unknown-unknown ==1.96.0
-    - cargo-bundle-licenses
-    - binaryen
-    - nodejs >=20.12,!=26.8.0
-    - yarn
-    - nasm
-    - clang
-    - llvm-tools
-    - libprotobuf
-    - pkg-config
-    - cmake
-    - make
   host:
     - python 3.10.*
     - python-abi3 3.10.*
-    - maturin >=1.8.1,<2
-    - python-build
     - python-installer
-    - hatchling
-    - hatch-jupyter-builder
-    - anywidget
-    - libudev <258
   run:
     - python >=3.10
+    - __glibc >=2.17
+    - libgcc >=13
+    - libudev1 >=257.13
     - attrs >=23.1.0
     - anywidget
     - jupyter-ui-poll
@@ -84,7 +73,8 @@ about:
     - THIRDPARTY.yml
   summary: Rerun SDK and viewer with native AV1 decoding on Linux ARM64
   description: |
-    Temporary 0.38.1 source build with the native AV1 ARM64 fix for
-    rerun-io/rerun#7755. Includes the Python SDK, native viewer, web viewer,
-    and notebook integration. Remove this recipe once a released upstream
-    version supports native AV1 on Linux ARM64.
+    Packages verified wheels built from 0.38.1 source with the native AV1
+    ARM64 fix for rerun-io/rerun#7755. Includes the Python SDK, native viewer,
+    web viewer, and notebook integration. The source rebuild recipe is kept
+    in .github/rerun-source-build. Remove this stopgap once a released
+    upstream version supports native AV1 on Linux ARM64.

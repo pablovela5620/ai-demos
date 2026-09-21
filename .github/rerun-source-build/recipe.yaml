@@ -1,0 +1,90 @@
+context:
+  version: "0.38.1"
+
+package:
+  name: rerun-sdk
+  version: ${{ version }}
+
+source:
+  url: https://github.com/rerun-io/rerun/archive/refs/tags/${{ version }}.tar.gz
+  sha256: 280a79778f7329598f3f858e93de179fcdb77ca0b95e2d1d0fb615cb420ae74d
+  patches:
+    - rerun-0.38.1-av1-arm64.patch
+
+build:
+  number: 0
+  string: av1arm64_h${{ hash }}_${{ build_number }}
+  skip: target_platform != "linux-aarch64"
+  script: build.sh
+  python:
+    version_independent: true
+    entry_points:
+      - rerun = rerun_cli.__main__:main
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - rust ==1.96.0
+    - rust-std-wasm32-unknown-unknown ==1.96.0
+    - cargo-bundle-licenses
+    - binaryen
+    - nodejs >=20.12,!=26.8.0
+    - yarn
+    - nasm
+    - clang
+    - llvm-tools
+    - libprotobuf
+    - pkg-config
+    - cmake
+    - make
+  host:
+    - python 3.10.*
+    - python-abi3 3.10.*
+    - maturin >=1.8.1,<2
+    - python-build
+    - python-installer
+    - hatchling
+    - hatch-jupyter-builder
+    - anywidget
+    - libudev <258
+  run:
+    - python >=3.10
+    - attrs >=23.1.0
+    - anywidget
+    - jupyter-ui-poll
+    - ipykernel !=7.0.*
+    - numpy >=2
+    - pillow >=8.0.0
+    - psutil >=7.0
+    - pyarrow >=18.0.0
+    - typing_extensions >=4.5
+
+tests:
+  - python:
+      imports:
+        - rerun
+        - rerun_bindings
+        - rerun_notebook
+      python_version: "3.10.*"
+  - script:
+      - rerun --version
+      - rerun --version | grep 'Video features:.*av1'
+      - rerun viewer-mcp --help
+      - python -c "import rerun; assert rerun.__version__ == '0.38.1'"
+
+about:
+  homepage: https://rerun.io
+  repository: https://github.com/rerun-io/rerun
+  license: MIT OR Apache-2.0
+  license_file:
+    - LICENSE-MIT
+    - LICENSE-APACHE
+    - THIRDPARTY.yml
+  summary: Rerun SDK and viewer with native AV1 decoding on Linux ARM64
+  description: |
+    Temporary 0.38.1 source build with the native AV1 ARM64 fix for
+    rerun-io/rerun#7755. Includes the Python SDK, native viewer, web viewer,
+    and notebook integration. Remove this recipe once a released upstream
+    version supports native AV1 on Linux ARM64.
