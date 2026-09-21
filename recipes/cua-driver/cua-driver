@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export CUA_DRIVER_RS_TELEMETRY_ENABLED=false
+export CUA_DRIVER_RS_UPDATE_CHECK=false
+prefix="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ -d "$prefix/share/cua-driver/CuaDriver.app" ]]; then
+    case "${1:-}" in
+        --version|--help|manifest)
+            exec "$prefix/share/cua-driver/CuaDriver.app/Contents/MacOS/cua-driver" "$@" ;;
+    esac
+    if [[ ! -x /Applications/CuaDriver.app/Contents/MacOS/cua-driver ]]; then
+        echo 'CuaDriver.app is not installed. Run agent-fleet/scripts/sync.sh first.' >&2
+        exit 1
+    fi
+    exec /Applications/CuaDriver.app/Contents/MacOS/cua-driver "$@"
+else
+    # SSH/Paseo may lack the desktop variables imported by the user's session.
+    # Copy only display/bus identifiers, never eval the manager environment.
+    if [[ -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] && command -v systemctl >/dev/null 2>&1; then
+        while IFS='=' read -r key value; do
+            case "$key" in
+                DISPLAY|WAYLAND_DISPLAY|XAUTHORITY|XDG_SESSION_TYPE|XDG_RUNTIME_DIR|DBUS_SESSION_BUS_ADDRESS)
+                    export "$key=$value" ;;
+            esac
+        done < <(systemctl --user show-environment 2>/dev/null || true)
+    fi
+    export LD_LIBRARY_PATH="$prefix/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    exec "$prefix/libexec/cua-driver/cua-driver" "$@"
+fi

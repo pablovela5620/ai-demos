@@ -1,0 +1,58 @@
+context:
+  version: "0.28.2"
+
+package:
+  name: cua-driver
+  version: ${{ version }}
+
+source:
+  - if: target_platform == "linux-64"
+    then:
+      url: https://github.com/trycua/cua/releases/download/cua-driver-rs-v${{ version }}/cua-driver-rs-${{ version }}-linux-x86_64-binary.tar.gz
+      sha256: a1d99fd04bb4927ef5ffdbe60eb91ed8b51a2bab60e10fc604a75bd59ce69c3e
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://github.com/trycua/cua/releases/download/cua-driver-rs-v${{ version }}/cua-driver-rs-${{ version }}-linux-arm64-binary.tar.gz
+      sha256: 55e8a32839a4ac369a773df4dac87b345bd4567779221ade4a5e39223a45a2e8
+  - if: target_platform == "osx-arm64"
+    then:
+      url: https://github.com/trycua/cua/releases/download/cua-driver-rs-v${{ version }}/cua-driver-rs-${{ version }}-darwin-universal.tar.gz
+      sha256: e273181b26709c88b1d809474deb3c592b4efae3530b11d76318f1887fc3fbb1
+  - url: https://raw.githubusercontent.com/trycua/cua/cua-driver-rs-v${{ version }}/LICENSE.md
+    sha256: c0779290c1d4783169aa3dbfb55feb505e563ef8a004bbf55298ceffcfbda8d9
+
+build:
+  number: 0
+  skip: target_platform not in ["linux-64", "linux-aarch64", "osx-arm64"]
+  script: build.sh
+  dynamic_linking:
+    binary_relocation: false
+
+requirements:
+  run:
+    - if: linux
+      then:
+        - __glibc >=2.31
+        - libgcc
+        - xorg-libx11
+        - xorg-libxi
+        - libxkbcommon
+    - if: osx
+      then: __osx >=14.0
+
+tests:
+  - package_contents:
+      bin:
+        - cua-driver
+  - script:
+      - cua-driver --version
+      - cua-driver --help
+      - if: osx
+        then: codesign --verify --deep --strict "$PREFIX/share/cua-driver/CuaDriver.app"
+
+about:
+  homepage: https://cua.ai/docs/how-to-guides/driver/install
+  repository: https://github.com/trycua/cua
+  license: MIT
+  license_file: LICENSE.md
+  summary: Native desktop automation driver with a release-matched agent skill
