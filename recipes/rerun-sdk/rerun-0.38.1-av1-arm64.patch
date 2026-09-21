@@ -1,0 +1,138 @@
+diff --git a/crates/top/re_viewer/build.rs b/crates/top/re_viewer/build.rs
+index ceaf9af..accdaf4 100644
+--- a/crates/top/re_viewer/build.rs
++++ b/crates/top/re_viewer/build.rs
+@@ -17,6 +17,49 @@ fn main() {
+ 
+     re_build_tools::export_build_info_vars_for_crate("re_viewer");
+ 
++    let target_os = re_build_tools::get_and_track_env_var("CARGO_CFG_TARGET_OS");
++    let target_arch = re_build_tools::get_and_track_env_var("CARGO_CFG_TARGET_ARCH");
++    if target_os.as_deref() == Ok("linux") && target_arch.as_deref() == Ok("aarch64") {
++        // `re_rav1d` contains hand-written AArch64 assembly that refers to globals such as
++        // `dav1d_mc_warp_filter` using instructions that encode an address relative to the current
++        // instruction. These instructions can only reach addresses within roughly 4 GiB. When
++        // producing a shared object, a symbol may instead be replaced by a definition from another
++        // shared object at runtime. That definition could be anywhere in memory, so this kind of
++        // address cannot be resolved safely and the linker reports a "recompile with -fPIC" error.
++        //
++        // `-Wl,` tells the compiler's linker driver to pass the remaining comma-separated options to the ELF linker.
++        // `--exclude-libs,ALL` marks symbols originating in static archives as hidden for
++        // the purpose of the static link itself. This guarantees that the rav1d globals bind to
++        // their definitions in this shared object, allowing the linker to resolve the direct
++        // relocations.
++        //
++        // `ALL` applies to every static archive in this link because Cargo gives rlibs hashed file
++        // names, such as `libre_rav1d-<hash>.rlib`; GNU ld requires exact archive names and cannot
++        // select that archive with a crate-name wildcard. This does not hide symbols defined by
++        // the cdylib itself. Rust cdylibs also generally should not re-export implementation
++        // details pulled in from their statically linked dependencies.
++        //
++        // The Cargo directive applies only when this package is linked as a
++        // `cdylib` (that's the `rustc-link-arg-cdylib` bit!) it is not embedded in the `re_viewer`
++        // rlib and does not propagate to downstream shared libraries.
++        //
++        // # Could we use a linker version script to hide the symbols instead?
++        //
++        // Hiding matching names with a linker version script does not work out here:
++        // ld validates these relocations while it is still processing the input archive, before the
++        // output's dynamic symbol visibility from a version script can make the references safe.
++        //
++        // # How should this be fixed upstream?
++        //
++        // `re_rav1d` should mark internal globals used by its assembly as hidden, e.g.
++        // `.hidden dav1d_mc_warp_filter`. This tells the linker that direct references resolve
++        // inside the same shared library. Symbols that must remain replaceable by another shared
++        // library should instead be accessed through the Global Offset Table (GOT), which the
++        // runtime linker fills with the symbol's final address. The fix should be tested by linking
++        // an AArch64 Linux `cdylib` with GNU ld.bfd; once released, this workaround can be removed.
++        println!("cargo::rustc-link-arg-cdylib=-Wl,--exclude-libs,ALL");
++    }
++
+     // The context is a couple of megabytes of documentation, and the web viewer has no
+     // agent panel to hand it to.
+     let embed = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default() != "wasm32"
+diff --git a/crates/utils/re_video/Cargo.toml b/crates/utils/re_video/Cargo.toml
+index 700505f..c0ff3fa 100644
+--- a/crates/utils/re_video/Cargo.toml
++++ b/crates/utils/re_video/Cargo.toml
+@@ -73,20 +73,15 @@ image = { workspace = true, default-features = false, features = ["png"] }
+ bytemuck.workspace = true
+ tiff.workspace = true
+ 
+-# We enable re_rav1d on native, UNLESS we're on Linux Arm64
+-# See https://github.com/rerun-io/rerun/issues/7755
+-[target.'cfg(all(not(target_arch = "wasm32"), not(all(target_os = "linux", target_arch = "aarch64"))))'.dependencies]
+-
+-
+ # If this package fails to build, install `nasm` locally, or build through `pixi`.
+ # NOTE: we use `dav1d` as an alias for our own re_rav1d crate
+ # See https://github.com/rerun-io/re_rav1d/pull/2
++[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ dav1d = { workspace = true, optional = true, default-features = false, features = [
+   # We opt-out of wasm features so we don't need `nasm` installed. It's still pretty fast.
+   "bitdepth_8",
+ ] }
+ 
+-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ image = { workspace = true, default-features = false, features = ["jpeg"] }
+ 
+ # web
+diff --git a/crates/utils/re_video/build.rs b/crates/utils/re_video/build.rs
+index c357f88..0853148 100644
+--- a/crates/utils/re_video/build.rs
++++ b/crates/utils/re_video/build.rs
+@@ -1,8 +1,7 @@
+ fn main() {
+     cfg_aliases::cfg_aliases! {
+         native: { not(target_arch = "wasm32") },
+-        linux_arm64: { all(target_os = "linux", target_arch = "aarch64") },
+-        with_dav1d: { all(feature = "av1", native, not(linux_arm64)) }, // https://github.com/rerun-io/rerun/issues/7755
++        with_dav1d: { all(feature = "av1", native) },
+         with_ffmpeg: { all(feature= "ffmpeg", native) }
+     }
+ }
+diff --git a/crates/utils/re_video/src/decode/mod.rs b/crates/utils/re_video/src/decode/mod.rs
+index 4640a51..d535be3 100644
+--- a/crates/utils/re_video/src/decode/mod.rs
++++ b/crates/utils/re_video/src/decode/mod.rs
+@@ -134,11 +134,6 @@ pub enum DecodeError {
+     #[error("To enabled native AV1 decoding, compile Rerun with the `nasm` feature enabled.")]
+     Dav1dWithoutNasm,
+ 
+-    #[error(
+-        "Rerun does not yet support native AV1 decoding on Linux ARM64. See https://github.com/rerun-io/rerun/issues/7755"
+-    )]
+-    NoDav1dOnLinuxArm64,
+-
+     #[error("Image decode error: {0}")]
+     ImageDecoder(#[size_bytes(ignore)] String),
+ 
+@@ -170,7 +165,6 @@ impl DecodeError {
+             Self::WaitingForCodecDetails
+             | Self::UnsupportedCodec(_)
+             | Self::Dav1dWithoutNasm
+-            | Self::NoDav1dOnLinuxArm64
+             | Self::RvlDecoder(_) => false,
+ 
+             // Issue with AV1 decoding.
+@@ -208,7 +202,6 @@ impl DecodeError {
+ 
+             Self::UnsupportedCodec(_)
+             | Self::Dav1dWithoutNasm
+-            | Self::NoDav1dOnLinuxArm64
+             | Self::BadBitsPerComponent(_)
+             | Self::RvlDecoder(_) => VideoPlaybackIssueSeverity::Error,
+         }
+@@ -318,11 +311,6 @@ pub fn new_decoder(
+             match &video.codec {
+                 #[cfg(feature = "av1")]
+                 crate::VideoCodec::AV1 => {
+-                    #[cfg(linux_arm64)]
+-                    {
+-                        return Err(DecodeError::NoDav1dOnLinuxArm64);
+-                    }
+-
+                     #[cfg(with_dav1d)]
+                     {
+                         re_log::trace!("Decoding AV1…");
