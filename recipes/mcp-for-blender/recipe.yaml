@@ -1,0 +1,50 @@
+context:
+  version: "2.0.3"
+
+package:
+  name: mcp-for-blender
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/d1/08/6003ced519cae37ca528eceed9727e087c0630120e3df6634a4ac1470c33/mcp_for_blender-2.0.3.tar.gz
+  sha256: f92b9c7d1f544baec4af02e668a43a1f0cae04c289535c7f6f00ca38db2689b8
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - mcp-for-blender = blender_mcp.server:main
+  script:
+    - python -m build --wheel --no-isolation
+    - python -m installer --prefix="$PREFIX" dist/*.whl
+
+requirements:
+  host:
+    - python 3.13.*
+    - python-build
+    - python-installer
+    - setuptools >=77
+    - wheel
+  run:
+    - python >=3.10
+    - mcp >=1.9.0,<2
+    - httpx >=0.27.0
+
+tests:
+  - python:
+      imports:
+        - blender_mcp.server
+      pip_check: false
+  - script:
+      - mcp-for-blender --help
+      - python test_mcp.py
+    files:
+      recipe:
+        - test_mcp.py
+
+about:
+  homepage: https://github.com/ahujasid/mcp-for-blender
+  license: MIT
+  license_file: LICENSE
+  summary: "MCP server and matching Blender add-on"

@@ -37,6 +37,11 @@ jobs:
       - name: Check workflow contract
         run: pixi run check
 
+      - name: Test Blender MCP package
+        # Test this package explicitly: the bulk build below uses --no-test.
+        # Each target runs the MCP transport test before publishing can proceed.
+        run: pixi run test-blender-package
+
       - name: Build packages
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
