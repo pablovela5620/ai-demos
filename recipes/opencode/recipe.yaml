@@ -1,5 +1,5 @@
 context:
-  version: "1.18.32"
+  version: "1.18.33"
 
 package:
   name: opencode
@@ -11,15 +11,15 @@ source:
   - if: target_platform == "osx-arm64"
     then:
       url: https://registry.npmjs.org/opencode-darwin-arm64/-/opencode-darwin-arm64-${{ version }}.tgz
-      sha256: a1707bb6cc9deaccca501c4097f1580b8af70dfc227f194ae0f576f32abbdebe
+      sha256: cd2c704ad653137b62992bca2b32383f8daa31b3c9462e566278e1efba07b31d
   - if: target_platform == "linux-64"
     then:
       url: https://registry.npmjs.org/opencode-linux-x64/-/opencode-linux-x64-${{ version }}.tgz
-      sha256: da0803c85eb86709c4f084adcbfb0b5329936670bfe43d2367f0ca034be0c1de
+      sha256: 149a676b59224b196626abda2fdbd34c8329ac326b57c4891ba3de446f3ca3c1
   - if: target_platform == "linux-aarch64"
     then:
       url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-arm64.tar.gz
-      sha256: 568461b7d4d8c19865c97e9a1102e613049c6039d01fe772154de873c1865840
+      sha256: c63486624621924bf43be5c01abd252885661a734814224f6d70188a33aea858
 
 build:
   number: 1  # autobump: preserve-build-number
