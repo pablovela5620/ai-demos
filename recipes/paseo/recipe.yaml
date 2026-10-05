@@ -3,7 +3,8 @@ context:
 
 package:
   name: paseo
-  version: ${{ version }}
+  # Conda package versions cannot keep npm's prerelease hyphen.
+  version: ${{ version | replace("-beta.", "b") }}
 
 source:
   url: https://registry.npmjs.org/@getpaseo/cli/-/cli-${{ version }}.tgz
