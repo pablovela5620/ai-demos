@@ -1,6 +1,6 @@
 context:
   version: "0.38.1"
-  release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-sdk-0.38.1-av1arm64-wheels
+  release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-sdk-0.38.1-av1arm64-r2-wheels
 
 package:
   name: rerun-sdk
@@ -8,10 +8,10 @@ package:
 
 source:
   - url: ${{ release }}/rerun_sdk-${{ version }}-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
-    sha256: 8d5ee9b10e0ce5da43b79d9ca25bce90271f2dcbbdb98b20d5f59760bc0c6795
+    sha256: bdff7194359c5c37303a43cae4920cea8028537f3041e56a83512d871e50d20f
     file_name: rerun_sdk-${{ version }}-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
   - url: ${{ release }}/rerun_notebook-${{ version }}-py2.py3-none-any.whl
-    sha256: b475af14dfa2bb66a5839ae6cbd98fb51b4c554f2e4913598fd19655e6afb849
+    sha256: 8b986efd320e1307001295c0a4879c1281a531d5838a5f7414ecde6ecb7aadc3
     file_name: rerun_notebook-${{ version }}-py2.py3-none-any.whl
   - url: ${{ release }}/LICENSE-MIT
     sha256: 7d3db59468f92d70f176170deacf8ac6858b6d78010a30ae01eba42bac302940
@@ -21,7 +21,7 @@ source:
     sha256: 7d0872c94e63ef2de64bed1e5cdfd4f5565e445baa82fe84f40595e739dbe8df
 
 build:
-  number: 0
+  number: 1
   string: av1arm64_h${{ hash }}_${{ build_number }}
   skip: target_platform != "linux-aarch64"
   script: build.sh
