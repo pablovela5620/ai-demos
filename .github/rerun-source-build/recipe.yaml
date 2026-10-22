@@ -10,9 +10,10 @@ source:
   sha256: 280a79778f7329598f3f858e93de179fcdb77ca0b95e2d1d0fb615cb420ae74d
   patches:
     - rerun-0.38.1-av1-arm64.patch
+    - rerun-0.38.1-proxy-slow-reader.patch
 
 build:
-  number: 0
+  number: 1
   string: av1arm64_h${{ hash }}_${{ build_number }}
   skip: target_platform != "linux-aarch64"
   script: build.sh
