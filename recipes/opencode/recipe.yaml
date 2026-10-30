@@ -1,25 +1,25 @@
 context:
-  version: "1.18.33"
+  version: "2.2.2"
 
 package:
   name: opencode
   version: ${{ version }}
 
-# Repack official platform binaries. The npm linux-arm64 package unexpectedly
-# requires /lib/ld-musl-aarch64.so.1, so use the upstream glibc release asset.
+# Repack official release binaries. Version 2 is not published under the
+# version 1 npm package names. Keep the Linux ARM64 glibc loader check.
 source:
   - if: target_platform == "osx-arm64"
     then:
-      url: https://registry.npmjs.org/opencode-darwin-arm64/-/opencode-darwin-arm64-${{ version }}.tgz
-      sha256: cd2c704ad653137b62992bca2b32383f8daa31b3c9462e566278e1efba07b31d
+      url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-darwin-arm64.zip
+      sha256: c1c901a6379d667b7a30a3eea5a8f6e93416dba43e889e834771f6fb174f35c9
   - if: target_platform == "linux-64"
     then:
-      url: https://registry.npmjs.org/opencode-linux-x64/-/opencode-linux-x64-${{ version }}.tgz
-      sha256: 149a676b59224b196626abda2fdbd34c8329ac326b57c4891ba3de446f3ca3c1
+      url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-x64.tar.gz
+      sha256: 3a38b8c284450a5ca81a2c1ebbf29ebe05e618518f095da0066652167eb0eb33
   - if: target_platform == "linux-aarch64"
     then:
       url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-arm64.tar.gz
-      sha256: c63486624621924bf43be5c01abd252885661a734814224f6d70188a33aea858
+      sha256: dd866cebb72d11c91a7a7c4c3fd961ee06e03a9d0a5ff8eaa2a8ebebf25de7ba
 
 build:
   number: 1  # autobump: preserve-build-number
