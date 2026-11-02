@@ -1,5 +1,5 @@
 context:
-  version: "0.3.44"
+  version: "0.3.46"
 
 package:
   name: ruler
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://registry.npmjs.org/@intellectronica/ruler/-/ruler-${{ version }}.tgz
-  sha256: 3fce3248fc92b642dfcbd0b57ac26f2ab8e9a1a97262f97f15ffb37b29b11565
+  sha256: 1f56209ff25b9d07c118fb74061804711e5d23665bcd67573025fc6220c44366
 
 build:
   number: 0
