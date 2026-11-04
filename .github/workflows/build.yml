@@ -17,10 +17,10 @@ jobs:
   build:
     strategy:
       matrix:
+        # Validate macOS packages on the fleet Mac mini, not a hosted runner.
         include:
           - { target: linux-64, os: ubuntu-latest }
           - { target: linux-aarch64, os: ubuntu-24.04-arm }
-          - { target: osx-arm64, os: macos-latest }
       fail-fast: false
 
     runs-on: ${{ matrix.os }}

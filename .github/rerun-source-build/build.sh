@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Adapted from conda-forge/rerun-sdk-feedstock's 0.38.1 build.
+# Adapted from conda-forge/rerun-sdk-feedstock's 0.41.0 build.
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 export IS_IN_RERUN_WORKSPACE=no
 export CARGO_BUILD_JOBS="${CPU_COUNT:-8}"
@@ -31,7 +31,8 @@ run_wasm_build() {
     )
 }
 
-run_wasm_build cargo run --locked -p re_dev_tools -- build-web-viewer --no-default-features --features analytics,map_view --release -g
+run_wasm_build "$PYTHON" scripts/build_web_viewer.py --release -g
+RUSTFLAGS="" cargo test --locked --release -p re_quota_channel --features tokio test_stalled_receiver_does_not_block_sender -- --nocapture
 cargo build --locked --package rerun-cli --target aarch64-unknown-linux-gnu --no-default-features --features release_full --release
 cp target/aarch64-unknown-linux-gnu/release/rerun rerun_py/rerun_sdk/rerun_cli/rerun
 maturin build --locked --release --manifest-path rerun_py/Cargo.toml --target aarch64-unknown-linux-gnu --features pypi --interpreter "$PYTHON" --out sdk-wheels

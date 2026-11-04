@@ -60,7 +60,12 @@ Built `.conda` packages are written to `output/`.
 
 GitHub Actions (`.github/workflows/build.yml`) runs on every push to `main`:
 
-1. **Build** — builds all recipes for `linux-64`, `linux-aarch64`, and `osx-arm64`, skipping versions that already exist on the channel.
+1. **Build** — builds all recipes for `linux-64` and `linux-aarch64`, skipping versions that already exist on the channel.
 2. **Upload** — authenticates to prefix.dev via OIDC trusted publisher and uploads new `.conda` packages to the `ai-demos` channel.
 
 Pull requests trigger builds without storing package artifacts. Push artifacts are retained for one day, only long enough for the upload job to publish them.
+
+Validate macOS changes on the fleet Mac mini. Hosted macOS runners are excluded
+to avoid private-repository usage costs. In a checkout on that machine, run
+`pixi run check`, `pixi run test-blender-package`, then
+`TARGET_PLATFORM=osx-arm64 pixi run ci-build`.

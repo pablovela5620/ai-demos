@@ -27,18 +27,26 @@ def load_workflow() -> dict[str, Any]:
 class BuildWorkflowTest(unittest.TestCase):
     """Verify package builds use free runners without retaining duplicate artifacts."""
 
-    def test_standard_macos_builds_use_short_lived_push_artifacts(self) -> None:
-        """Build macOS packages but retain artifacts only long enough to publish them."""
+    def test_github_builds_use_linux_runners(self) -> None:
+        """Use the fleet Mac mini for macOS instead of a hosted runner."""
         workflow: dict[str, Any] = load_workflow()
         build_job: dict[str, Any] = workflow["jobs"]["build"]
         matrix_rows: list[dict[str, str]] = build_job["strategy"]["matrix"]["include"]
+        self.assertEqual(matrix_rows, [
+            {"target": "linux-64", "os": "ubuntu-latest"},
+            {"target": "linux-aarch64", "os": "ubuntu-24.04-arm"},
+        ])
+
+    def test_push_artifacts_are_short_lived(self) -> None:
+        """Retain package artifacts only long enough to publish them."""
+        workflow: dict[str, Any] = load_workflow()
+        build_job: dict[str, Any] = workflow["jobs"]["build"]
         upload_step: dict[str, Any] = next(
             step
             for step in build_job["steps"]
             if step.get("name") == "Upload build artifacts"
         )
 
-        self.assertIn({"target": "osx-arm64", "os": "macos-latest"}, matrix_rows)
         self.assertEqual(
             upload_step["if"],
             "github.event_name == 'push' && steps.check.outputs.has-packages == 'true'",

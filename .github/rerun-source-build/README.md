@@ -1,9 +1,9 @@
 # Rebuild the temporary Linux ARM64 AV1 wheels
 
 The normal `recipes/rerun-sdk` recipe packages checksum-pinned wheels from
-the `rerun-sdk-0.38.1-av1arm64-r2-wheels` GitHub release. It does not compile Rerun.
+a GitHub release. It does not compile Rerun.
 
-This directory preserves the upstream 0.38.1 source recipe, four-file AV1 patch,
+This directory preserves the upstream 0.41.0 source recipe, four-file AV1 patch,
 the slow-reader patch, and toolchain used to produce those wheels. To rebuild on
 Linux aarch64:
 
@@ -17,14 +17,18 @@ Verify SDK imports on supported Python versions and capture changing AV1 frames
 with the native viewer before publishing replacement build inputs. Use a new
 release tag and checksums; do not replace existing assets.
 
-The initial release wheels were built on DGX Spark using Rust 1.96.0, conda GCC
-13, and the glibc 2.17 sysroot. Both wheels passed imports on Python 3.10 and 3.14;
-the bundled viewer decoded AV1 at two distinct timestamps, checked in screenshots.
-The original source build stopped at notebook dependency installation; that stage
-was completed separately in the retained environment. The preserved build script
-includes the corrected Yarn invocation and CI setting.
+The 0.41 build uses Rust 1.98.1, conda GCC 13, and the glibc 2.17 sysroot.
+Rerun 0.41 requires Python 3.11 or newer. The web build uses
+`scripts/build_web_viewer.py` and wasm-bindgen 0.2.129. The notebook build
+requires hatchling 1.30.1 and hatch-jupyter-builder 0.9.1 exactly.
 
-The second patch, `rerun-0.38.1-proxy-slow-reader.patch`, fixes a stalled live-proxy
+The released 0.41.0 wheels passed imports on Python 3.11 and 3.15. The native
+viewer rendered different AV1 frames at 0.2 and 1.6 seconds. The channel test
+passed with `--features tokio`; without that feature the test is not compiled.
+In the end-to-end check, a stopped gRPC client did not block the producer file
+or another client (both received 421 MB), and a fresh client received 8 MB.
+
+The second patch, `rerun-0.41.0-proxy-slow-reader.patch`, fixes a stalled live-proxy
 reader blocking the logger and all viewers: Rerun's broadcast channel waits forever
 by design. It allows overflow after one second so the stalled reader skips ahead.
 Verify it with `test_stalled_receiver_does_not_block_sender` and the end-to-end

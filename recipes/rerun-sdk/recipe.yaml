@@ -1,27 +1,27 @@
 context:
-  version: "0.38.1"
-  release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-sdk-0.38.1-av1arm64-r2-wheels
+  version: "0.41.0"
+  release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-sdk-0.41.0-av1arm64-wheels
 
 package:
   name: rerun-sdk
   version: ${{ version }}
 
 source:
-  - url: ${{ release }}/rerun_sdk-${{ version }}-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
-    sha256: bdff7194359c5c37303a43cae4920cea8028537f3041e56a83512d871e50d20f
-    file_name: rerun_sdk-${{ version }}-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+  - url: ${{ release }}/rerun_sdk-${{ version }}-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl
+    sha256: fef65e5568830b456f796022b23dc6004c12f96a52bf4eca566f01217c178f9d
+    file_name: rerun_sdk-${{ version }}-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl
   - url: ${{ release }}/rerun_notebook-${{ version }}-py2.py3-none-any.whl
-    sha256: 8b986efd320e1307001295c0a4879c1281a531d5838a5f7414ecde6ecb7aadc3
+    sha256: 9f33749035d18f5f48a71c95291dc7f955fd3b6a87fcc11251b99ca5cf93c9c1
     file_name: rerun_notebook-${{ version }}-py2.py3-none-any.whl
   - url: ${{ release }}/LICENSE-MIT
     sha256: 7d3db59468f92d70f176170deacf8ac6858b6d78010a30ae01eba42bac302940
   - url: ${{ release }}/LICENSE-APACHE
     sha256: 8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90
   - url: ${{ release }}/THIRDPARTY.yml
-    sha256: 7d0872c94e63ef2de64bed1e5cdfd4f5565e445baa82fe84f40595e739dbe8df
+    sha256: 9ff0c267f07fa62059d5871ef1ac61c74c32dd758e5e887eddc8413dffbae63d
 
 build:
-  number: 1
+  number: 0
   string: av1arm64_h${{ hash }}_${{ build_number }}
   skip: target_platform != "linux-aarch64"
   script: build.sh
@@ -32,11 +32,11 @@ build:
 
 requirements:
   host:
-    - python 3.10.*
-    - python-abi3 3.10.*
+    - python 3.11.*
+    - python-abi3 3.11.*
     - python-installer
   run:
-    - python >=3.10
+    - python >=3.11
     - __glibc >=2.17
     - libgcc >=13
     - libudev1 >=257.13
@@ -56,12 +56,12 @@ tests:
         - rerun
         - rerun_bindings
         - rerun_notebook
-      python_version: "3.10.*"
+      python_version: "3.11.*"
   - script:
       - rerun --version
       - rerun --version | grep 'Video features:.*av1'
       - rerun viewer-mcp --help
-      - python -c "import rerun; assert rerun.__version__ == '0.38.1'"
+      - python -c "import rerun; assert rerun.__version__ == '0.41.0'"
 
 about:
   homepage: https://rerun.io
@@ -73,7 +73,7 @@ about:
     - THIRDPARTY.yml
   summary: Rerun SDK and viewer with native AV1 decoding on Linux ARM64
   description: |
-    Packages verified wheels built from 0.38.1 source with the native AV1
+    Packages verified wheels built from 0.41.0 source with the native AV1
     ARM64 fix for rerun-io/rerun#7755. Includes the Python SDK, native viewer,
     web viewer, and notebook integration. The source rebuild recipe is kept
     in .github/rerun-source-build. Remove this stopgap once a released
