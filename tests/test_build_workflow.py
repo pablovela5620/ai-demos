@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-import re
 import unittest
 from pathlib import Path
 from typing import Any
@@ -29,23 +27,15 @@ def load_workflow() -> dict[str, Any]:
 class BuildWorkflowTest(unittest.TestCase):
     """Verify package builds use free runners without retaining duplicate artifacts."""
 
-    def test_private_repositories_exclude_hosted_macos_builds(self) -> None:
-        """Reserve hosted macOS builds for public repositories."""
+    def test_github_builds_use_linux_runners(self) -> None:
+        """Use the fleet Mac mini for macOS instead of a hosted runner."""
         workflow: dict[str, Any] = load_workflow()
         build_job: dict[str, Any] = workflow["jobs"]["build"]
-        matrix_expression: str = build_job["strategy"]["matrix"]["include"]
-        self.assertIsInstance(matrix_expression, str)
-        self.assertRegex(matrix_expression, r"github\.event\.repository\.private\s*&&")
-        choices: list[str] = re.findall(r"'([^']+)'", matrix_expression)
-        self.assertEqual(len(choices), 2)
-        private_rows: list[dict[str, str]] = json.loads(choices[0])
-        public_rows: list[dict[str, str]] = json.loads(choices[1])
-        linux_rows: list[dict[str, str]] = [
+        matrix_rows: list[dict[str, str]] = build_job["strategy"]["matrix"]["include"]
+        self.assertEqual(matrix_rows, [
             {"target": "linux-64", "os": "ubuntu-latest"},
             {"target": "linux-aarch64", "os": "ubuntu-24.04-arm"},
-        ]
-        self.assertEqual(private_rows, linux_rows)
-        self.assertEqual(public_rows, [*linux_rows, {"target": "osx-arm64", "os": "macos-latest"}])
+        ])
 
     def test_push_artifacts_are_short_lived(self) -> None:
         """Retain package artifacts only long enough to publish them."""

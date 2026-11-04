@@ -17,14 +17,10 @@ jobs:
   build:
     strategy:
       matrix:
-        # Hosted macOS is free for public repositories, but costly for private ones.
-        # Validate private-repository macOS changes on the fleet's Mac mini.
-        include: >-
-          ${{ fromJSON(
-            github.event.repository.private
-            && '[{"target":"linux-64","os":"ubuntu-latest"},{"target":"linux-aarch64","os":"ubuntu-24.04-arm"}]'
-            || '[{"target":"linux-64","os":"ubuntu-latest"},{"target":"linux-aarch64","os":"ubuntu-24.04-arm"},{"target":"osx-arm64","os":"macos-latest"}]'
-          ) }}
+        # Validate macOS packages on the fleet Mac mini, not a hosted runner.
+        include:
+          - { target: linux-64, os: ubuntu-latest }
+          - { target: linux-aarch64, os: ubuntu-24.04-arm }
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
