@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       prebuilt_release:
-        description: Private draft release of tested Mac packages (macos-staging-<recipe SHA>)
+        description: Temporary prerelease of tested Mac packages (macos-staging-<recipe SHA>)
         type: string
         default: ""
       prebuilt_manifest_sha256:
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: packages-osx-arm64
-          path: output/osx-arm64/*.conda
+          path: output/**/*.conda
           retention-days: 1
 
   upload:
