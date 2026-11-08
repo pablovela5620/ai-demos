@@ -1,0 +1,142 @@
+# TODO(tensorrt-conda-forge): Stopgap: drop this ai-demos build and the channel
+# pin once conda-forge's tensorrt-feedstock ships >= 11.2 (watch
+# conda-forge/tensorrt-feedstock PRs #5/#8); then switch libnvinfer* to
+# conda-forge and delete the recipe.
+#
+# Mirrors conda-forge/tensorrt-feedstock's recipe/recipe.yaml + build.sh
+# (11.1.0.106, build 2) at 11.2.1.2, the version examples-monorepo pins. It
+# repackages NVIDIA's redist tarballs (no compile) and keeps conda-forge's
+# package names, so the switch back is a channel change. Differences:
+# - linux-64 + linux-aarch64 (sbsa) on CUDA 13 only; no Windows.
+# - Only the runtime outputs the TensorRT Python wheels need: libnvinfer,
+#   libnvinfer-plugin, libnvonnxparser (no -lean/-dispatch/-vc-plugin, tools,
+#   headers/-devel, or Windows builder resources).
+# - No compilers or cf-nvidia-tools (ai-demos has no cuda_arch_version /
+#   arm_variant_type variants); the glibc and libstdc++ floors they exported
+#   are explicit run deps instead, read from the 11.2.1.2 binaries' symbol versions.
+context:
+  full_version: "11.2.1.2"
+  version: "11.2.1"
+
+recipe:
+  name: tensorrt
+  version: ${{ full_version }}
+
+source:
+  - if: linux and x86_64
+    then:
+      url: https://developer.download.nvidia.com/compute/machine-learning/tensorrt/${{ version }}/tars/TensorRT-Enterprise-${{ full_version }}-Linux-x86_64-cuda-13.3-Release-external.tar.zst
+      file_name: tensorrt.tar.zst
+      sha256: 1db0fc9f3d04dae4b9262f4dfb10a19616d88577eec7f2535ac7be01a470e807
+  - if: linux and aarch64
+    then:
+      url: https://developer.download.nvidia.com/compute/machine-learning/tensorrt/${{ version }}/tars/TensorRT-Enterprise-${{ full_version }}-Linux-aarch64-cuda-13.3-Release-external.tar.zst
+      file_name: tensorrt.tar.zst
+      sha256: e6b340c457b93fe14c9daab60c3f994c3907ac18515a993c588bb9108b922625
+
+build:
+  number: 0
+  script: bash "${RECIPE_DIR}/build.sh"
+  skip:
+    - not linux
+    - cuda_compiler_version != "13.0"
+  dynamic_linking:
+    # Prebuilt libraries: conda-forge notes RPATH rewriting is not needed and
+    # patchelf corrupts them (https://github.com/NixOS/patchelf/issues/492).
+    binary_relocation: false
+
+outputs:
+  - package:
+      name: libnvinfer
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - cuda-cudart
+        - cuda-nvrtc
+        - libgcc >=12
+        - libstdcxx >=12
+        - if: x86_64
+          then: __glibc >=2.28
+        - if: aarch64
+          then: __glibc >=2.34
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer.so.${{ version }}
+            - lib/libnvinfer_builder_resource_ptx.so.${{ version }}
+    about:
+      summary: TensorRT standard runtime library
+
+  - package:
+      name: libnvinfer-plugin
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - ${{ pin_subpackage("libnvinfer", exact=True) }}
+        - cuda-cudart
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_plugin.so.${{ version }}
+    about:
+      summary: TensorRT plugin runtime library
+
+  - package:
+      name: libnvonnxparser
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - ${{ pin_subpackage("libnvinfer", exact=True) }}
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvonnxparser.so.${{ version }}
+    about:
+      summary: TensorRT ONNX parser runtime library
+
+about:
+  homepage: https://developer.nvidia.com/tensorrt
+  license: LicenseRef-NVIDIA-TensorRT-SDK
+  license_file:
+    - doc/README.txt
+    - doc/Acknowledgements.txt
+  summary: Runtime libraries for NVIDIA TensorRT
+  description: |
+    NVIDIA TensorRT is an SDK for high-performance deep learning inference.
+    These packages provide its shared runtime libraries, repackaged from
+    NVIDIA's redist tarballs following conda-forge's tensorrt-feedstock.
+  documentation: https://docs.nvidia.com/deeplearning/tensorrt/
+  repository: https://github.com/NVIDIA/TensorRT
