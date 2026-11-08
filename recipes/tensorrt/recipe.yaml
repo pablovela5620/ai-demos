@@ -11,6 +11,10 @@
 # - Only the runtime outputs the TensorRT Python wheels need: libnvinfer,
 #   libnvinfer-plugin, libnvonnxparser (no -lean/-dispatch/-vc-plugin, tools,
 #   headers/-devel, or Windows builder resources).
+# - The builder resources are one output each (libnvinfer-builder-resource-*,
+#   exact run deps of libnvinfer), not part of libnvinfer: prefix.dev rejects
+#   packages over 1 GiB, and libnvinfer with them was 1.8 GiB (2.2 on aarch64).
+#   They install to $PREFIX/lib next to libnvinfer.so, as in conda-forge.
 # - No compilers or cf-nvidia-tools (ai-demos has no cuda_arch_version /
 #   arm_variant_type variants); the glibc and libstdc++ floors they exported
 #   are explicit run deps instead, read from the 11.2.1.2 binaries' symbol versions.
@@ -35,7 +39,7 @@ source:
       sha256: e6b340c457b93fe14c9daab60c3f994c3907ac18515a993c588bb9108b922625
 
 build:
-  number: 0
+  number: 1
   script: bash "${RECIPE_DIR}/build.sh"
   skip:
     - not linux
@@ -46,6 +50,237 @@ build:
     binary_relocation: false
 
 outputs:
+  - package:
+      name: libnvinfer-builder-resource-ptx
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_ptx.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (ptx)
+
+  - package:
+      name: libnvinfer-builder-resource-sm75
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm75.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm75)
+
+  - package:
+      name: libnvinfer-builder-resource-sm80
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm80.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm80)
+
+  - package:
+      name: libnvinfer-builder-resource-sm86
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm86.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm86)
+
+  - package:
+      name: libnvinfer-builder-resource-sm89
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm89.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm89)
+
+  - package:
+      name: libnvinfer-builder-resource-sm90
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm90.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm90)
+
+  - package:
+      name: libnvinfer-builder-resource-sm100
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm100.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm100)
+
+  - package:
+      name: libnvinfer-builder-resource-sm120
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm120.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm120)
+
+  - package:
+      name: libnvinfer-builder-resource-sm110
+    build:
+      # An output's skip list replaces the top-level one, so repeat it.
+      skip:
+        - not linux
+        - cuda_compiler_version != "13.0"
+        - not aarch64
+    requirements:
+      build:
+        - tar
+        - zstd
+      host:
+        - cuda-version ==${{ cuda_compiler_version }}
+      run:
+        - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
+        - libgcc >=12
+        - libstdcxx >=12
+      run_constraints:
+        - if: aarch64
+          then: arm-variant * sbsa
+      ignore_run_exports:
+        by_name:
+          - cuda-version
+    tests:
+      - package_contents:
+          files:
+            - lib/libnvinfer_builder_resource_sm110.so.${{ version }}
+    about:
+      summary: TensorRT builder resource library (sm110)
+
   - package:
       name: libnvinfer
     requirements:
@@ -58,6 +293,16 @@ outputs:
         - ${{ pin_compatible("cuda-version", lower_bound="x", upper_bound="x") }}
         - cuda-cudart
         - cuda-nvrtc
+        - ${{ pin_subpackage("libnvinfer-builder-resource-ptx", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm75", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm80", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm86", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm89", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm90", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm100", exact=True) }}
+        - ${{ pin_subpackage("libnvinfer-builder-resource-sm120", exact=True) }}
+        - if: aarch64
+          then: ${{ pin_subpackage("libnvinfer-builder-resource-sm110", exact=True) }}
         - libgcc >=12
         - libstdcxx >=12
         - if: x86_64
@@ -74,7 +319,6 @@ outputs:
       - package_contents:
           files:
             - lib/libnvinfer.so.${{ version }}
-            - lib/libnvinfer_builder_resource_ptx.so.${{ version }}
     about:
       summary: TensorRT standard runtime library
 
