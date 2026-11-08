@@ -1,5 +1,5 @@
 context:
-  version: "2.2.2"
+  version: "2.2.6"
 
 package:
   name: opencode
@@ -11,15 +11,15 @@ source:
   - if: target_platform == "osx-arm64"
     then:
       url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-darwin-arm64.zip
-      sha256: c1c901a6379d667b7a30a3eea5a8f6e93416dba43e889e834771f6fb174f35c9
+      sha256: 15491608f6b0bc4debe5eac35eab629a2b07ea9a1fbac68ad53bcea59fcc4b45
   - if: target_platform == "linux-64"
     then:
       url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-x64.tar.gz
-      sha256: 3a38b8c284450a5ca81a2c1ebbf29ebe05e618518f095da0066652167eb0eb33
+      sha256: 08bb21d6326ce740d91cce7ebe88a6536933f6e1e30353b91a06b01f25da306c
   - if: target_platform == "linux-aarch64"
     then:
       url: https://github.com/anomalyco/opencode/releases/download/v${{ version }}/opencode-linux-arm64.tar.gz
-      sha256: dd866cebb72d11c91a7a7c4c3fd961ee06e03a9d0a5ff8eaa2a8ebebf25de7ba
+      sha256: f2d27600c367e45057d6a16f6a5c2aa8d77b41a9b10d4bc3d849c2f88870e944
 
 build:
   number: 1  # autobump: preserve-build-number
