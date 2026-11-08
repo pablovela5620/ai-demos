@@ -53,6 +53,20 @@ class BuildWorkflowTest(unittest.TestCase):
         )
         self.assertEqual(upload_step["with"]["retention-days"], 1)
 
+    def test_prebuilt_macos_uses_the_existing_publisher(self) -> None:
+        """Publish verified fleet builds with CI credentials, without a local login."""
+        workflow: dict[str, Any] = load_workflow()
+        jobs: dict[str, Any] = workflow["jobs"]
+        stage: dict[str, Any] = jobs["stage-macos"]
+        self.assertEqual(stage["runs-on"], "ubuntu-latest")
+        self.assertIn("stage-macos", jobs["upload"]["needs"])
+        self.assertIn("needs.stage-macos.result == 'success'", jobs["upload"]["if"])
+        verify: dict[str, Any] = next(
+            step for step in stage["steps"] if step.get("name") == "Verify prebuilt macOS packages"
+        )
+        self.assertIn("sha256sum --check", verify["run"])
+        self.assertIn("paseo claude-code codex opencode ruler", verify["run"])
+
     def test_build_logic_lives_in_pixi_task(self) -> None:
         """Keep the provider workflow as a thin wrapper around a local task."""
         workflow: dict[str, Any] = load_workflow()
