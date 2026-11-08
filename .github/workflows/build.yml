@@ -67,6 +67,11 @@ jobs:
         if: matrix.target == 'linux-64'
         run: pixi run ci-build-beszel-windows
 
+      - name: Check package sizes
+        # prefix.dev rejects any package file over 1 GiB (413); fail here, on PRs too,
+        # instead of in the upload job after merge.
+        run: pixi run check-package-size
+
       - name: Check for packages
         id: check
         shell: bash
