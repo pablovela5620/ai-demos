@@ -56,11 +56,18 @@ Built `.conda` packages are written to `output/`.
    ```
 4. Push to `main` — the existing CI workflow picks up any new recipe directory automatically.
 
+**Package size limit:** prefix.dev rejects any single package file over **1 GiB** (`413 Payload Too Large`).
+The build job runs `pixi run check-package-size` after the build, so an oversized package fails on its pull
+request, not in the upload job after merge (where it would also block every other package in that run).
+Split a large package into several outputs instead; `recipes/tensorrt` ships one
+`libnvinfer-builder-resource-<arch>` package per GPU architecture for this reason.
+
 ## CI/CD
 
 GitHub Actions (`.github/workflows/build.yml`) runs on every push to `main`:
 
 1. **Build** — builds all recipes for `linux-64` and `linux-aarch64`, skipping versions that already exist on the channel.
+   Then it checks that no package file is over prefix.dev's 1 GiB limit.
 2. **Upload** — authenticates to prefix.dev via OIDC trusted publisher and uploads new `.conda` packages to the `ai-demos` channel.
 
 Pull requests trigger builds without storing package artifacts. Push artifacts are retained for one day, only long enough for the upload job to publish them.

@@ -14,6 +14,7 @@ ci-build = "rattler-build build -c ./output -c https://prefix.dev/ai-demos -c co
 ci-build-beszel-windows = "rattler-build build -c https://prefix.dev/ai-demos -c conda-forge --recipe recipes/beszel-agent/recipe.yaml --target-platform=win-64 --skip-existing=all --no-test"
 update-npm = "python .github/scripts/update-npm.py"
 test-workflow = "python -m unittest discover tests"
+check-package-size = "python .github/scripts/check-package-size.py output"
 
 [dependencies]
 ca-certificates = "==2026.10.19"
