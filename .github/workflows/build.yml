@@ -8,6 +8,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      prebuilt_release:
+        description: Private draft release of tested Mac packages (macos-staging-<recipe SHA>)
+        type: string
+        default: ""
+      prebuilt_manifest_sha256:
+        description: SHA-256 of the release's SHA256SUMS file
+        type: string
+        default: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,6 +24,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_dispatch' || inputs.prebuilt_release == ''
     strategy:
       matrix:
         # Validate macOS packages on the fleet Mac mini, not a hosted runner.
@@ -76,13 +86,58 @@ jobs:
           path: output/**/*.conda
           retention-days: 1
 
+  stage-macos:
+    if: github.event_name == 'workflow_dispatch' && inputs.prebuilt_release != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Verify prebuilt macOS packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREBUILT_RELEASE: ${{ inputs.prebuilt_release }}
+          MANIFEST_SHA256: ${{ inputs.prebuilt_manifest_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PREBUILT_RELEASE" =~ ^macos-staging-[0-9a-f]{40}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          source_sha="${PREBUILT_RELEASE#macos-staging-}"
+          git fetch --depth=1 origin "$source_sha"
+          mkdir -p output/osx-arm64
+          gh release download "$PREBUILT_RELEASE" --repo "$GITHUB_REPOSITORY" \
+            --dir output/osx-arm64 --pattern '*.conda' --pattern SHA256SUMS
+          cd output/osx-arm64
+          printf '%s  SHA256SUMS\n' "$MANIFEST_SHA256" | sha256sum --check -
+          [[ $(wc -l < SHA256SUMS) -eq 5 ]]
+          while read -r checksum filename; do
+            [[ "$checksum" =~ ^[0-9a-f]{64}$ ]]
+            [[ "$filename" =~ ^[a-z0-9][a-zA-Z0-9_.-]*\.conda$ ]]
+          done < SHA256SUMS
+          [[ $(find . -maxdepth 1 -name '*.conda' | wc -l) -eq 5 ]]
+          for package in paseo claude-code codex opencode ruler; do
+            version="$(git show "$source_sha:recipes/$package/recipe.yaml" | sed -nE 's/^  version: "([^"]+)"$/\1/p' | head -1)"
+            [[ -n "$version" ]]
+            [[ $(find . -maxdepth 1 -name "$package-$version-*.conda" | wc -l) -eq 1 ]]
+          done
+          sha256sum --check SHA256SUMS
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: packages-osx-arm64
+          path: output/osx-arm64/*.conda
+          retention-days: 1
+
   upload:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
-    needs: build
-    if: github.event_name == 'push'
+    needs: [build, stage-macos]
+    if: >-
+      always() &&
+      ((github.event_name == 'push' && needs.build.result == 'success') ||
+       (github.event_name == 'workflow_dispatch' && needs.stage-macos.result == 'success'))
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6

@@ -69,3 +69,14 @@ Validate macOS changes on the fleet Mac mini. Hosted macOS runners are excluded
 to avoid private-repository usage costs. In a checkout on that machine, run
 `pixi run check`, `pixi run test-blender-package`, then
 `TARGET_PLATFORM=osx-arm64 pixi run ci-build`.
+
+Publish the five tested agent packages (`paseo`, `claude-code`, `codex`,
+`opencode`, and `ruler`) through the same CI publisher as Linux. This does
+not need a personal Prefix login or a hosted Mac runner. Stage the packages
+in a private draft release named `macos-staging-<full recipe commit SHA>`,
+with a `SHA256SUMS` file containing only those five filenames and hashes.
+Dispatch `build.yml` on `main` with `prebuilt_release` set to that release
+name and `prebuilt_manifest_sha256` set to the hash of `SHA256SUMS`.
+CI checks every hash and each recipe version before using the existing
+OIDC publisher. After it succeeds, verify channel availability, remove
+the temporary draft release, then merge the fleet pins and converge.
