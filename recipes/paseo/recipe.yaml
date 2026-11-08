@@ -1,5 +1,5 @@
 context:
-  version: "0.13.0"
+  version: "0.15.3"
 
 package:
   name: paseo
@@ -7,8 +7,10 @@ package:
   version: ${{ version | replace("-beta.", "b") }}
 
 source:
-  url: https://registry.npmjs.org/@getpaseo/cli/-/cli-${{ version }}.tgz
-  sha256: 7413cf1e209bcf66f5d8e33ef7b44622e93e5ed62cedbff5799d338d3d515de7
+  - url: https://registry.npmjs.org/@getpaseo/cli/-/cli-${{ version }}.tgz
+    sha256: 7741a9edc505b136befc784fda2100e850b055c145ad2455c6e062bb59893f58
+  - url: https://raw.githubusercontent.com/getpaseo/paseo/v${{ version }}/LICENSE
+    sha256: 79d5aedce6aa0adc547336dc1bd34c5cc9308ba110fac7079ed97515ee573ad3
 
 build:
   number: 0
@@ -55,6 +57,6 @@ tests:
 about:
   homepage: https://paseo.sh
   repository: https://github.com/getpaseo/paseo
-  license: AGPL-3.0-only
+  license: Apache-2.0
   license_file: LICENSE
   summary: Paseo daemon and CLI - run coding agents on your machine and drive them from mobile, desktop, web, or terminal clients
