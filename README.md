@@ -1,76 +1,55 @@
 # ai-demos
 
-Conda package forge for AI/robotics demos, built with [rattler-build](https://rattler-build.readthedocs.io/) and published to the [prefix.dev/ai-demos](https://prefix.dev/channels/ai-demos) channel.
+Conda recipes for AI and robotics tools, built with [rattler-build](https://rattler-build.readthedocs.io/) and published to the [prefix.dev/ai-demos](https://prefix.dev/channels/ai-demos) channel.
+The channel is the package catalog and `recipes/<name>/recipe.yaml` is the source of truth for each package.
+agent-fleet pins exact versions from this channel, so publishing here changes nothing on machines until a pin moves.
 
-## Packages
+## Working on recipes
 
-The [Prefix channel](https://prefix.dev/channels/ai-demos) is the published
-package catalog. Source recipes, supported selectors, and pinned upstreams live
-in [`recipes/`](recipes/). Recipe metadata is canonical; this README does not
-copy the catalog.
+Tasks live in `pixi.toml`. The everyday ones:
 
-## Prerequisites
+- `pixi run test-recipe <name>` builds one recipe and runs its tests on this machine's platform.
+- `pixi run build-new` builds every recipe whose version is not on the channel yet, into `output/`.
+- `pixi run check` runs the repository tests.
 
-- [pixi](https://pixi.sh) package manager
+A new recipe is a new `recipes/<name>/` directory (`recipe.yaml`, plus `build.sh` if needed); CI picks it up.
+Merge to `main` and CI builds and publishes whatever the channel is missing.
 
-## Quick start
+**Versions and build numbers.** For a new upstream release, change `context.version`, update every `sha256`, and reset `build.number` to 0.
+For a packaging-only change (build script, `run` dependencies, metadata), bump `build.number` and keep the version and hashes.
+A `# autobump: preserve-build-number` comment on the `build.number` line keeps the number across automatic version bumps (opencode carries a corrected build lane this way).
 
-```bash
-git clone https://github.com/pablovela5620/ai-demos.git
-cd ai-demos
-pixi install
-```
-
-Build only packages whose latest version is not yet on the channel:
-
-```bash
-pixi run build-new
-```
-
-Rebuild all packages regardless of what already exists:
-
-```bash
-pixi run build-all
-```
-
-Built `.conda` packages are written to `output/`.
-
-## Updating an existing package
-
-**Version number** — bump when the upstream source changes (new release, new source archive). Reset `build.number` to 0 and update the `sha256` hash(es).
-
-**Build number** — bump (without changing `version`) when only the packaging changes: patching the build script, updating `run` dependencies, or fixing recipe metadata like `description`. The source archive stays the same so the hash doesn't change.
-
-1. Edit `recipes/<pkg>/recipe.yaml` with the appropriate bump.
-2. If `version` changed, update the `sha256` hash for each source archive.
-3. Push to `main` — CI will build and upload the new version automatically.
-
-## Adding a new recipe
-
-1. Create `recipes/<name>/recipe.yaml` following the [rattler-build recipe format](https://rattler-build.readthedocs.io/en/latest/reference/recipe_file/).
-2. If the package needs a build script, add `recipes/<name>/build.sh`.
-3. Test locally:
-   ```bash
-   pixi run rattler-build build -c https://prefix.dev/ai-demos -c conda-forge \
-     --recipe recipes/<name>/ --no-test
-   ```
-4. Push to `main` — the existing CI workflow picks up any new recipe directory automatically.
-
-**Package size limit:** prefix.dev rejects any single package file over **1 GiB** (`413 Payload Too Large`).
+**Package size limit.** prefix.dev rejects any single package file over **1 GiB** (`413 Payload Too Large`).
 The build job runs `pixi run check-package-size` after the build, so an oversized package fails on its pull
 request, not in the upload job after merge (where it would also block every other package in that run).
 Split a large package into several outputs instead; `recipes/tensorrt` ships one
 `libnvinfer-builder-resource-<arch>` package per GPU architecture for this reason.
 
+## Autobump
+
+`.github/workflows/autobump.yml` checks the recipes in its matrix every Monday: the npm `latest` tag, or for
+opencode the highest `vX.Y.Z` GitHub release (its 2.x releases are not on npm). For each newer release,
+`autobump-recipe.yml`:
+
+1. rewrites the recipe on the branch `autobump/<recipe>`, opens or updates that recipe's one PR, and closes its older bump PRs;
+2. builds the recipe and runs its tests natively on linux-64 and linux-aarch64;
+3. merges the tested commit and dispatches `build.yml` on `main` to publish.
+
+A bump whose tests fail stays open as a PR for a human. The merge needs no review because agent-fleet's pins gate
+what machines install. The publish is a dispatch because a merge made with `GITHUB_TOKEN` starts no push workflow.
+
+The updater is `pixi run autobump <recipe> npm:<package>` (or `github:<owner>/<repo>`). A recipe in the matrix
+needs `context.version` as its first key, a `sha256` line right below each `${{ version }}` URL, and
+`build.number` as the first `build` key; `pixi run check` enforces this.
+
 ## CI/CD
 
-GitHub Actions (`.github/workflows/build.yml`) runs on every push to `main`:
+`.github/workflows/build.yml` runs on pushes to `main`, on pull requests, and on dispatch:
 
-1. **Build** — builds all recipes for `linux-64` and `linux-aarch64`, skipping versions that already exist on the channel.
-   Then it checks that no package file is over prefix.dev's 1 GiB limit.
-2. **Upload** — authenticates to prefix.dev via OIDC trusted publisher and uploads new `.conda` packages to the `ai-demos` channel.
-
-Pull requests trigger builds without storing package artifacts. Push artifacts are retained for one day, only long enough for the upload job to publish them.
+1. **Build** builds all recipes for `linux-64` and `linux-aarch64`, skipping versions that already exist on the channel,
+   then checks that no package file is over prefix.dev's 1 GiB limit.
+2. **Upload** runs for `main` only. It authenticates to prefix.dev via OIDC trusted publisher and uploads the new
+   `.conda` packages. Build artifacts are kept for one day, long enough for this job.
 
 Validate macOS changes on the fleet Mac mini. Hosted macOS runners are excluded
 to avoid private-repository usage costs. In a checkout on that machine, run

@@ -1,55 +1,53 @@
-"""Contract tests for the npm autobump workflow."""
+"""Contract tests for the autobump workflows: test on both Linux targets, merge, then publish."""
 
 from __future__ import annotations
 
-import unittest
-from pathlib import Path
 from typing import Any
 
-import yaml
+from conftest import load_yaml
 
-WORKFLOW_PATH: Path = Path(__file__).parent.parent / ".github" / "workflows" / "autobump.yml"
-
-
-def load_workflow() -> dict[str, Any]:
-    """Load the autobump workflow."""
-    workflow_text: str = WORKFLOW_PATH.read_text(encoding="utf-8")
-    workflow: object = yaml.safe_load(workflow_text)
-    if not isinstance(workflow, dict):
-        raise TypeError("autobump workflow must be a mapping")
-    return workflow
+RECIPE_WORKFLOW: dict[str, Any] = load_yaml(".github/workflows/autobump-recipe.yml")
+JOBS: dict[str, Any] = RECIPE_WORKFLOW["jobs"]
 
 
-class AutobumpWorkflowTest(unittest.TestCase):
-    """Verify a failed PR creation can be retried safely."""
-
-    def test_openwiki_release_updates_are_automatic(self) -> None:
-        """Track the public npm release used by the OpenWiki recipe."""
-        workflow: dict[str, Any] = load_workflow()
-        matrix_rows: list[dict[str, str]] = workflow["jobs"]["bump"]["strategy"][
-            "matrix"
-        ]["include"]
-
-        self.assertIn(
-            {"recipe": "openwiki", "npm-package": "openwiki"}, matrix_rows
-        )
-
-    def test_pr_step_reuses_branch_and_existing_pull_request(self) -> None:
-        """A rerun must update its deterministic branch instead of failing to push."""
-        workflow: dict[str, Any] = load_workflow()
-        steps: list[dict[str, Any]] = workflow["jobs"]["bump"]["steps"]
-        pr_step: dict[str, Any] = next(
-            step for step in steps if step.get("name") == "Create Pull Request"
-        )
-        script: str = pr_step["run"]
-
-        self.assertIn('git switch -C "$branch"', script)
-        self.assertIn(
-            'git push --force-with-lease --set-upstream origin "$branch"', script
-        )
-        self.assertIn('gh pr list --head "$branch" --state open', script)
-        self.assertIn('gh pr edit "$existing_pr"', script)
+def run_scripts(job: dict[str, Any]) -> str:
+    """Concatenate every ``run`` script of a job."""
+    return "\n".join(step.get("run", "") for step in job["steps"])
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_every_matrix_row_calls_the_recipe_workflow() -> None:
+    """The scheduled workflow fans out one reusable-workflow call per recipe."""
+    bump: dict[str, Any] = load_yaml(".github/workflows/autobump.yml")["jobs"]["bump"]
+    assert bump["uses"] == "./.github/workflows/autobump-recipe.yml"
+    assert {"recipe": "opencode", "source": "github:anomalyco/opencode"} in bump["strategy"]["matrix"]["include"]
+    assert bump["permissions"] == {"actions": "write", "contents": "write", "pull-requests": "write"}
+
+
+def test_one_pull_request_per_recipe_updated_in_place() -> None:
+    """A rerun or a newer upstream release reuses autobump/<recipe> and closes older bump PRs."""
+    script: str = run_scripts(JOBS["bump"])
+    assert 'branch="autobump/$RECIPE"' in script
+    assert 'gh pr edit "$pr"' in script
+    assert "gh pr close" in script
+
+
+def test_recipe_tests_run_natively_on_both_linux_targets() -> None:
+    """The bump commit is built with its recipe tests on an x64 and an arm64 runner."""
+    test: dict[str, Any] = JOBS["test"]
+    assert test["strategy"]["matrix"]["include"] == [
+        {"target": "linux-64", "os": "ubuntu-latest"},
+        {"target": "linux-aarch64", "os": "ubuntu-24.04-arm"},
+    ]
+    assert test["steps"][0]["with"]["ref"] == "${{ needs.bump.outputs.sha }}"
+    assert 'pixi run test-recipe "$RECIPE"' in run_scripts(test)
+
+
+def test_merge_needs_the_tests_and_then_dispatches_the_publisher() -> None:
+    """Merge exactly the tested commit, then start build.yml on main (a GITHUB_TOKEN merge starts no push run)."""
+    merge: dict[str, Any] = JOBS["merge"]
+    script: str = run_scripts(merge)
+    assert merge["needs"] == ["bump", "test"]
+    assert "if" not in merge, "merge must keep the default success() gate on the test matrix"
+    assert '--match-head-commit "$SHA"' in script
+    assert script.index("gh pr merge") < script.index("gh workflow run build.yml")
+    assert "--ref main" in script

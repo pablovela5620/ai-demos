@@ -1,0 +1,142 @@
+name: Autobump recipe
+
+# One recipe: bump it on the branch autobump/<recipe> (one PR per recipe, updated in place),
+# build and test it natively on linux-64 and linux-aarch64, then merge the tested commit and
+# dispatch build.yml on main to publish. The merge needs no human: agent-fleet's exact pins
+# decide what machines install. GITHUB_TOKEN pushes and merges start no other workflow, so the
+# tests run here and the publish is a workflow_dispatch, which GITHUB_TOKEN may start.
+
+on:
+  workflow_call:
+    inputs:
+      recipe:
+        type: string
+        required: true
+      source:
+        description: "npm:PACKAGE or github:OWNER/REPO"
+        type: string
+        required: true
+      selected:
+        type: boolean
+        default: true
+
+permissions: {}
+
+jobs:
+  bump:
+    # Only main: the bump branch starts from the checked-out ref, and its PR auto-merges.
+    if: inputs.selected && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RECIPE: ${{ inputs.recipe }}
+    outputs:
+      changed: ${{ steps.bump.outputs.changed }}
+      sha: ${{ steps.pr.outputs.sha }}
+      pr: ${{ steps.pr.outputs.pr }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true # the next steps push the bump branch
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
+
+      - name: Bump recipe
+        id: bump
+        env:
+          SOURCE: ${{ inputs.source }}
+        run: pixi run autobump "$RECIPE" "$SOURCE"
+
+      - name: Open or update the pull request
+        id: pr
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          OLD: ${{ steps.bump.outputs.old-version }}
+          NEW: ${{ steps.bump.outputs.new-version }}
+        run: |
+          set -euo pipefail
+          branch="autobump/$RECIPE"
+          title="Bump $RECIPE from $OLD to $NEW"
+          body="Automated bump of \`$RECIPE\` from \`$OLD\` to \`$NEW\`. Merges itself once the recipe tests pass on linux-64 and linux-aarch64."
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git commit -m "$title" -- "recipes/$RECIPE/recipe.yaml"
+          git push --force origin "$branch"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "$title" --body "$body"
+          else
+            pr="$(gh pr create --base main --head "$branch" --title "$title" --body "$body")"
+            pr="${pr##*/}"
+          fi
+          echo "pr=$pr" >> "$GITHUB_OUTPUT"
+
+      - name: Close superseded pull requests
+        # Every other open autobump PR for this recipe, including the old per-version branches
+        # (autobump/<recipe>-<version>): the PR above replaces it, or main already has the latest.
+        env:
+          PR: ${{ steps.pr.outputs.pr }}
+          NEW: ${{ steps.bump.outputs.new-version }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PR" ]; then reason="Superseded by #$PR"; else reason="Superseded: main has $NEW"; fi
+          gh pr list --state open --limit 200 --json number,headRefName \
+            --jq '.[] | select(.headRefName | test("^autobump/" + env.RECIPE + "(-[0-9][^/]*)?$")) | .number' |
+            while read -r number; do
+              if [ "$number" != "$PR" ]; then gh pr close "$number" --comment "$reason"; fi
+            done
+
+  test:
+    needs: bump
+    if: needs.bump.outputs.changed == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: linux-64, os: ubuntu-latest }
+          - { target: linux-aarch64, os: ubuntu-24.04-arm }
+    name: test (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the bump commit
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.bump.outputs.sha }}
+          persist-credentials: false
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
+
+      - name: Build and test the recipe
+        env:
+          RECIPE: ${{ inputs.recipe }}
+          RATTLER_BUILD_COLOR: always
+        run: pixi run test-recipe "$RECIPE"
+
+  merge:
+    needs: [bump, test]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write # gh workflow run
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ needs.bump.outputs.pr }}
+      SHA: ${{ needs.bump.outputs.sha }}
+    steps:
+      - name: Merge the tested commit
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$SHA"
+
+      - name: Publish from main
+        # A merge made with GITHUB_TOKEN starts no push workflow, so dispatch the publisher.
+        run: gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref main
