@@ -4,107 +4,36 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: Recipe/package to bump. Leave empty to check all packages.
+        description: Recipe to bump. Leave empty to check all recipes.
         required: false
         default: ""
   schedule:
     - cron: "0 5 * * 1"
 
+permissions: {}
+
 jobs:
   bump:
-    name: Bump ${{ matrix.recipe }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    name: ${{ matrix.recipe }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - recipe: playwright-cli
-            npm-package: "@playwright/cli"
-          - recipe: paseo
-            npm-package: "@getpaseo/cli"
-          - recipe: claude-code
-            npm-package: "@anthropic-ai/claude-code"
-          - recipe: codex
-            npm-package: "@openai/codex"
-          - recipe: splat-transform
-            npm-package: "@playcanvas/splat-transform"
-          - recipe: ruler
-            npm-package: "@intellectronica/ruler"
-          - recipe: opencode
-            npm-package: "opencode-ai"
-          - recipe: openwiki
-            npm-package: "openwiki"
-    # NB: the package filter lives on the steps, not the job — the `matrix`
-    # context is not allowed in job-level `if` (GitHub rejects the whole
-    # workflow file: schedules silently never fire, every push logs a
-    # phantom "workflow file issue" failure).
-    env:
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - name: Check out branch
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
-
-      - name: Bump npm recipe
-        if: github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe
-        id: bump
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          bump_output="$(pixi run update-npm '${{ matrix.recipe }}' '${{ matrix.npm-package }}')"
-          printf '%s\n' "$bump_output"
-
-          result="$(printf '%s\n' "$bump_output" | tail -n 1)"
-          if [ "$result" != "changed" ] && [ "$result" != "unchanged" ]; then
-            echo "Unexpected updater result: $result" >&2
-            exit 1
-          fi
-
-          old_version="$(printf '%s\n' "$bump_output" | sed -n 's/^old-version=//p' | tail -n 1)"
-          new_version="$(printf '%s\n' "$bump_output" | sed -n 's/^new-version=//p' | tail -n 1)"
-
-          echo "old-version=$old_version" >> "$GITHUB_OUTPUT"
-          echo "new-version=$new_version" >> "$GITHUB_OUTPUT"
-          if [ "$result" = "changed" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Create Pull Request
-        if: steps.bump.outputs.changed == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          branch="autobump/${{ matrix.recipe }}-${{ steps.bump.outputs.new-version }}"
-          title="Bump ${{ matrix.recipe }} from ${{ steps.bump.outputs.old-version }} to ${{ steps.bump.outputs.new-version }}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin "$branch:refs/remotes/origin/$branch" || true
-          git switch -C "$branch"
-          git add "recipes/${{ matrix.recipe }}/recipe.yaml"
-          git commit -m "$title"
-          git push --force-with-lease --set-upstream origin "$branch"
-
-          existing_pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
-          if [ -n "$existing_pr" ]; then
-            gh pr edit "$existing_pr" \
-              --title "$title" \
-              --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`."
-            pr_url="$existing_pr"
-          else
-            pr_url="$(gh pr create \
-              --base main \
-              --head "$branch" \
-              --title "$title" \
-              --body "Automated npm autobump for \`${{ matrix.recipe }}\`: \`${{ steps.bump.outputs.old-version }}\` -> \`${{ steps.bump.outputs.new-version }}\`.")"
-          fi
-          gh pr merge "$pr_url" --auto --squash || echo "auto-merge unavailable"
+          - { recipe: playwright-cli, source: "npm:@playwright/cli" }
+          - { recipe: paseo, source: "npm:@getpaseo/cli" }
+          - { recipe: claude-code, source: "npm:@anthropic-ai/claude-code" }
+          - { recipe: codex, source: "npm:@openai/codex" }
+          - { recipe: splat-transform, source: "npm:@playcanvas/splat-transform" }
+          - { recipe: ruler, source: "npm:@intellectronica/ruler" }
+          # opencode 2.x ships only as GitHub releases; npm opencode-ai stays on 1.x.
+          - { recipe: opencode, source: "github:anomalyco/opencode" }
+          - { recipe: openwiki, source: "npm:openwiki" }
+    permissions:
+      actions: write # dispatch build.yml after the merge
+      contents: write # push the bump branch and merge it
+      pull-requests: write
+    uses: ./.github/workflows/autobump-recipe.yml
+    with:
+      recipe: ${{ matrix.recipe }}
+      source: ${{ matrix.source }}
+      selected: ${{ github.event_name == 'schedule' || inputs.package == '' || inputs.package == matrix.recipe }}

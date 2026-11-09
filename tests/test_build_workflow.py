@@ -2,106 +2,60 @@
 
 from __future__ import annotations
 
-import unittest
-from pathlib import Path
-from typing import Any
 import tomllib
+from typing import Any
 
-import yaml
+from conftest import ROOT, load_yaml
 
-WORKFLOW_PATH: Path = (
-    Path(__file__).parent.parent / ".github" / "workflows" / "build.yml"
-)
-PIXI_PATH: Path = Path(__file__).parent.parent / "pixi.toml"
-
-
-def load_workflow() -> dict[str, Any]:
-    """Load the package build workflow."""
-    workflow_text: str = WORKFLOW_PATH.read_text(encoding="utf-8")
-    workflow: object = yaml.safe_load(workflow_text)
-    if not isinstance(workflow, dict):
-        raise TypeError("build workflow must be a mapping")
-    return workflow
+WORKFLOW: dict[str, Any] = load_yaml(".github/workflows/build.yml")
+JOBS: dict[str, Any] = WORKFLOW["jobs"]
 
 
-class BuildWorkflowTest(unittest.TestCase):
-    """Verify package builds use free runners without retaining duplicate artifacts."""
-
-    def test_github_builds_use_linux_runners(self) -> None:
-        """Use the fleet Mac mini for macOS instead of a hosted runner."""
-        workflow: dict[str, Any] = load_workflow()
-        build_job: dict[str, Any] = workflow["jobs"]["build"]
-        matrix_rows: list[dict[str, str]] = build_job["strategy"]["matrix"]["include"]
-        self.assertEqual(matrix_rows, [
-            {"target": "linux-64", "os": "ubuntu-latest"},
-            {"target": "linux-aarch64", "os": "ubuntu-24.04-arm"},
-        ])
-
-    def test_push_artifacts_are_short_lived(self) -> None:
-        """Retain package artifacts only long enough to publish them."""
-        workflow: dict[str, Any] = load_workflow()
-        build_job: dict[str, Any] = workflow["jobs"]["build"]
-        upload_step: dict[str, Any] = next(
-            step
-            for step in build_job["steps"]
-            if step.get("name") == "Upload build artifacts"
-        )
-
-        self.assertEqual(
-            upload_step["if"],
-            "github.event_name == 'push' && steps.check.outputs.has-packages == 'true'",
-        )
-        self.assertEqual(upload_step["with"]["retention-days"], 1)
-
-    def test_prebuilt_macos_uses_the_existing_publisher(self) -> None:
-        """Publish verified fleet builds with CI credentials, without a local login."""
-        workflow: dict[str, Any] = load_workflow()
-        jobs: dict[str, Any] = workflow["jobs"]
-        stage: dict[str, Any] = jobs["stage-macos"]
-        self.assertEqual(stage["runs-on"], "ubuntu-latest")
-        self.assertEqual(stage["permissions"], {"contents": "read"})
-        self.assertIn("stage-macos", jobs["upload"]["needs"])
-        self.assertIn("needs.stage-macos.result == 'success'", jobs["upload"]["if"])
-        verify: dict[str, Any] = next(
-            step for step in stage["steps"] if step.get("name") == "Verify prebuilt macOS packages"
-        )
-        self.assertIn("sha256sum --check", verify["run"])
-        self.assertIn("paseo claude-code codex opencode ruler", verify["run"])
-        stage_upload: dict[str, Any] = next(
-            step for step in stage["steps"] if step.get("uses", "").startswith("actions/upload-artifact@")
-        )
-        self.assertEqual(stage_upload["with"]["path"], "output/**/*.conda")
-
-    def test_build_logic_lives_in_pixi_task(self) -> None:
-        """Keep the provider workflow as a thin wrapper around a local task."""
-        workflow: dict[str, Any] = load_workflow()
-        build_steps: list[dict[str, Any]] = workflow["jobs"]["build"]["steps"]
-        build_step: dict[str, Any] = next(
-            step for step in build_steps if step.get("name") == "Build packages"
-        )
-        with PIXI_PATH.open("rb") as pixi_file:
-            pixi: dict[str, Any] = tomllib.load(pixi_file)
-        command: str = pixi["tasks"]["ci-build"]
-
-        self.assertEqual(build_step["run"], "pixi run ci-build")
-        self.assertIn("--target-platform=$TARGET_PLATFORM", command)
-        self.assertIn("--noarch-build-platform=linux-64", command)
-
-    def test_upload_job_accepts_an_empty_build(self) -> None:
-        """A push with no new package artifacts is successful, not an error."""
-        workflow: dict[str, Any] = load_workflow()
-        upload_steps: list[dict[str, Any]] = workflow["jobs"]["upload"]["steps"]
-        for step_name in (
-            "Upload packages to ai-demos channel",
-            "Verify packages via pixi search",
-        ):
-            step: dict[str, Any] = next(
-                candidate
-                for candidate in upload_steps
-                if candidate.get("name") == step_name
-            )
-            self.assertIn('if [ ! -d output ]; then', step["run"])
+def step(job: str, name: str) -> dict[str, Any]:
+    """Return the named step of a job."""
+    return next(candidate for candidate in JOBS[job]["steps"] if candidate.get("name") == name)
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_github_builds_use_linux_runners() -> None:
+    """Use the fleet Mac mini for macOS instead of a hosted runner."""
+    assert JOBS["build"]["strategy"]["matrix"]["include"] == [
+        {"target": "linux-64", "os": "ubuntu-latest"},
+        {"target": "linux-aarch64", "os": "ubuntu-24.04-arm"},
+    ]
+
+
+def test_main_publishes_on_push_and_on_dispatch() -> None:
+    """Artifacts and the upload job follow main, so autobump's dispatch publishes like a push."""
+    artifacts: dict[str, Any] = step("build", "Upload build artifacts")
+    assert artifacts["if"] == "github.ref == 'refs/heads/main'"
+    assert artifacts["with"]["retention-days"] == 1
+    assert "github.ref == 'refs/heads/main' && needs.build.result == 'success'" in JOBS["upload"]["if"]
+
+
+def test_prebuilt_macos_uses_the_existing_publisher() -> None:
+    """Publish verified fleet builds with CI credentials, without a local login."""
+    stage: dict[str, Any] = JOBS["stage-macos"]
+    assert stage["runs-on"] == "ubuntu-latest"
+    assert stage["permissions"] == {"contents": "read"}
+    assert "stage-macos" in JOBS["upload"]["needs"]
+    assert "needs.stage-macos.result == 'success'" in JOBS["upload"]["if"]
+    verify: str = step("stage-macos", "Verify prebuilt macOS packages")["run"]
+    assert "sha256sum --check" in verify
+    assert "paseo claude-code codex opencode ruler" in verify
+    stage_upload: dict[str, Any] = next(s for s in stage["steps"] if s.get("uses", "").startswith("actions/upload-artifact@"))
+    assert stage_upload["with"]["path"] == "output/**/*.conda"
+
+
+def test_build_logic_lives_in_pixi_task() -> None:
+    """Keep the provider workflow as a thin wrapper around a local task."""
+    with (ROOT / "pixi.toml").open("rb") as pixi_file:
+        command: str = tomllib.load(pixi_file)["tasks"]["ci-build"]
+    assert step("build", "Build packages")["run"] == "pixi run ci-build"
+    assert "--target-platform=$TARGET_PLATFORM" in command
+    assert "--noarch-build-platform=linux-64" in command
+
+
+def test_upload_job_accepts_an_empty_build() -> None:
+    """A run with no new package artifacts is successful, not an error."""
+    for name in ("Upload packages to ai-demos channel", "Verify packages via pixi search"):
+        assert "shopt -s globstar nullglob" in step("upload", name)["run"]
