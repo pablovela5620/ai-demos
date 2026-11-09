@@ -1,5 +1,5 @@
 context:
-  version: "0.41.0"
+  version: "0.42.0"
 
 package:
   name: rerun-sdk
@@ -7,10 +7,10 @@ package:
 
 source:
   url: https://github.com/rerun-io/rerun/archive/refs/tags/${{ version }}.tar.gz
-  sha256: 3ca038116f4e8da4360b3a236c67e22c20ea8aba8be80566790b3e69a1ab1f9a
+  sha256: a8f4eda6af7d54c0a89762183eea9042d5e8c7d20eb4c574e0a9aca7990b463a
   patches:
-    - rerun-0.41.0-av1-arm64.patch
-    - rerun-0.41.0-proxy-slow-reader.patch
+    - rerun-0.42.0-av1-arm64.patch
+    - rerun-0.42.0-proxy-slow-reader.patch
 
 build:
   number: 0
@@ -74,7 +74,7 @@ tests:
       - rerun --version
       - rerun --version | grep 'Video features:.*av1'
       - rerun viewer-mcp --help
-      - python -c "import rerun; assert rerun.__version__ == '0.41.0'"
+      - python -c "import rerun; assert rerun.__version__ == '0.42.0'"
 
 about:
   homepage: https://rerun.io
@@ -86,7 +86,7 @@ about:
     - THIRDPARTY.yml
   summary: Rerun SDK and viewer with native AV1 decoding on Linux ARM64
   description: |
-    Temporary 0.41.0 source build with the native AV1 ARM64 fix for
+    Temporary 0.42.0 source build with the native AV1 ARM64 fix for
     rerun-io/rerun#7755. Includes the Python SDK, native viewer, web viewer,
     and notebook integration. Remove this recipe once a released upstream
     version supports native AV1 on Linux ARM64.
