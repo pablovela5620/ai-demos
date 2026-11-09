@@ -1,11 +1,12 @@
 diff --git a/crates/top/re_viewer/build.rs b/crates/top/re_viewer/build.rs
-index ceaf9af..accdaf4 100644
+index 43de243..a830d0f 100644
 --- a/crates/top/re_viewer/build.rs
 +++ b/crates/top/re_viewer/build.rs
-@@ -17,6 +17,49 @@ fn main() {
+@@ -5,4 +5,48 @@ fn main() {
+     }
  
      re_build_tools::export_build_info_vars_for_crate("re_viewer");
- 
++
 +    let target_os = re_build_tools::get_and_track_env_var("CARGO_CFG_TARGET_OS");
 +    let target_arch = re_build_tools::get_and_track_env_var("CARGO_CFG_TARGET_ARCH");
 +    if target_os.as_deref() == Ok("linux") && target_arch.as_deref() == Ok("aarch64") {
@@ -49,11 +50,9 @@ index ceaf9af..accdaf4 100644
 +        println!("cargo::rustc-link-arg-cdylib=-Wl,--exclude-libs,ALL");
 +    }
 +
-     // The context is a couple of megabytes of documentation, and the web viewer has no
-     // agent panel to hand it to.
-     let embed = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default() != "wasm32"
+ }
 diff --git a/crates/utils/re_video/Cargo.toml b/crates/utils/re_video/Cargo.toml
-index 700505f..c0ff3fa 100644
+index c7c7800..9e4b2bf 100644
 --- a/crates/utils/re_video/Cargo.toml
 +++ b/crates/utils/re_video/Cargo.toml
 @@ -73,20 +73,15 @@ image = { workspace = true, default-features = false, features = ["png"] }
@@ -93,7 +92,7 @@ index c357f88..0853148 100644
      }
  }
 diff --git a/crates/utils/re_video/src/decode/mod.rs b/crates/utils/re_video/src/decode/mod.rs
-index 4640a51..d535be3 100644
+index 79ff564..20301a6 100644
 --- a/crates/utils/re_video/src/decode/mod.rs
 +++ b/crates/utils/re_video/src/decode/mod.rs
 @@ -134,11 +134,6 @@ pub enum DecodeError {

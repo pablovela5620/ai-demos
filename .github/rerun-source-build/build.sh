@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Adapted from conda-forge/rerun-sdk-feedstock's 0.41.0 build.
+# Adapted from conda-forge/rerun-sdk-feedstock's 0.41.0 build (unchanged for 0.42.0).
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 export IS_IN_RERUN_WORKSPACE=no
 export CARGO_BUILD_JOBS="${CPU_COUNT:-8}"
