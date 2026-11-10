@@ -1,0 +1,39 @@
+diff --git a/frontend/Index.svelte b/frontend/Index.svelte
+index 8a8b8ba..9fb1975 100644
+--- a/frontend/Index.svelte
++++ b/frontend/Index.svelte
+@@ -93,6 +93,16 @@
+ 		}
+ 	}
+ 
++	/**
++	 * Loads run one at a time, in the order the values arrive. A streamed run fetches its new segments on
++	 * every value change; run concurrently, a large early segment (the blueprint and a video) reached the
++	 * viewer after the small segments fetched for later values.
++	 */
++	let load_queue: Promise<void> = Promise.resolve();
++	function load_value(value: RerunProps['value'] = gradio.props.value) {
++		load_queue = load_queue.then(() => try_load_value(value)).catch((error) => console.error('Failed to load Rerun data:', error));
++	}
++
+ 	async function try_load_value(value: RerunProps['value'] = gradio.props.value) {
+ 		if (value == null) {
+ 			return;
+@@ -156,7 +166,7 @@
+ 		rr.on('ready', () => {
+ 			console.log('Rerun viewer ready');
+ 			channel = rr.open_channel('gradio');
+-			try_load_value();
++			load_value();
+ 			setup_panels();
+ 			// Clear loading status when viewer is ready
+ 			gradio.dispatch('clear_status', gradio.shared.loading_status);
+@@ -183,7 +193,7 @@
+ 	// Watch for value changes
+ 	$effect(() => {
+ 		const value = gradio.props.value;
+-		try_load_value(value);
++		load_value(value);
+ 	});
+ 
+ 	// Watch for panel_states changes
