@@ -24,12 +24,12 @@ requirements:
   run:
     - python >=3.11
     - rerun-sdk ==0.42.0
-    # gradio is not listed: consumers install gradio from PyPI (the conda-forge gradio misses transitive
-    # dependencies). gradio_rerun imports gradio at runtime, so the environment must provide gradio >=6.
+    - gradio >=6
 
 tests:
   - script:
       - python -c "import importlib.metadata as m; assert m.version('gradio-rerun') == '0.42.0.post1'"
+      - python -c "from gradio_rerun import Rerun; assert Rerun(streaming=True).streaming"
       - python -c "import pathlib, sysconfig; js = pathlib.Path(sysconfig.get_paths()['purelib'], 'gradio_rerun/templates/component/index.js'); assert b'Failed to load Rerun data' in js.read_bytes()"
 
 about:
