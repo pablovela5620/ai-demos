@@ -42,7 +42,7 @@ source:
       # SS_MOLTENVK_VERSION in cmake/SsVulkan.cmake; linked statically.
       - url: https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.2/MoltenVK-macos.tar
         sha256: f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e
-        target_directory: .deps/moltenvk/MoltenVK
+        target_directory: .deps/moltenvk
 
 build:
   number: 0
