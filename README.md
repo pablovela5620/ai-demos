@@ -77,12 +77,13 @@ to avoid private-repository usage costs. In a checkout on that machine, run
 `pixi run check`, `pixi run test-blender-package`, then
 `TARGET_PLATFORM=osx-arm64 pixi run ci-build`.
 
-Publish the five tested agent packages (`paseo`, `claude-code`, `codex`,
-`opencode`, and `ruler`) through the same CI publisher as Linux. This does
-not need a personal Prefix login or a hosted Mac runner. Stage the packages
-in a temporary prerelease named `macos-staging-<full recipe commit SHA>`
+Publish tested macOS packages through the same CI publisher as Linux. The
+staging job accepts only the packages it allowlists (`paseo`, `claude-code`,
+`codex`, `opencode`, `ruler`, and `spirula`), each at its recipe version. This
+does not need a personal Prefix login or a hosted Mac runner. Stage the
+packages in a temporary prerelease named `macos-staging-<full recipe commit SHA>`
 (marked as a prerelease, not the latest release),
-with a `SHA256SUMS` file containing only those five filenames and hashes.
+with a `SHA256SUMS` file containing only the staged filenames and hashes.
 Dispatch `build.yml` on `main` with `prebuilt_release` set to that release
 name and `prebuilt_manifest_sha256` set to the hash of `SHA256SUMS`.
 CI checks every hash and each recipe version before using the existing

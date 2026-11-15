@@ -66,7 +66,7 @@ class BuildWorkflowTest(unittest.TestCase):
             step for step in stage["steps"] if step.get("name") == "Verify prebuilt macOS packages"
         )
         self.assertIn("sha256sum --check", verify["run"])
-        self.assertIn("paseo claude-code codex opencode ruler", verify["run"])
+        self.assertIn("paseo claude-code codex opencode ruler spirula", verify["run"])
         stage_upload: dict[str, Any] = next(
             step for step in stage["steps"] if step.get("uses", "").startswith("actions/upload-artifact@")
         )
