@@ -1,0 +1,8 @@
+# macOS builds on the Mac mini without conda_build_config.yaml (Linux-only),
+# so stdlib('c') takes its macOS values from here; clang is the default.
+c_stdlib:
+  - if: osx
+    then: macosx_deployment_target
+c_stdlib_version:
+  - if: osx
+    then: "11.0"
