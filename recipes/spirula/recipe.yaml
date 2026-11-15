@@ -1,0 +1,104 @@
+# Spirula Studio: Gaussian splatting reconstruction (SfM, training, meshing)
+# with a GUI, built for the Vulkan backend. CMake downloads slangc, GLFW,
+# Dear ImGui and MoltenVK at configure time; they are pinned sources here so
+# the build runs offline. They unpack under .deps/, which the project's source
+# lints skip.
+context:
+  version: "2026.11.12"
+  slang_version: "2026.12.0.1"
+  # The pinned slang release ships no macOS assets; cmake/SsSlang.cmake uses
+  # this one on macOS.
+  slang_version_macos: "2026.12.1"
+
+package:
+  name: spirula
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/harry7557558/spirula-studio/archive/refs/tags/v${{ version }}.tar.gz
+    sha256: db177a10bb08fe69d53300262ee9b3cfaf34186c1512c53974a107b5a3838768
+  # Keep these in step with the GIT_TAGs in cmake/SsApps.cmake.
+  - url: https://github.com/glfw/glfw/archive/refs/tags/3.4.tar.gz
+    sha256: c038d34200234d071fae9345bc455e4a8f2f544ab60150765d7704e08f3dac01
+    target_directory: .deps/glfw
+  - url: https://github.com/ocornut/imgui/archive/refs/tags/v1.92.8.tar.gz
+    sha256: fecb33d33930e12ff53a34064e9d3a06c8f7c3e04408f14cd36c80e3faac863b
+    target_directory: .deps/imgui
+  - if: target_platform == "linux-64"
+    then:
+      url: https://github.com/shader-slang/slang/releases/download/v${{ slang_version }}/slang-${{ slang_version }}-linux-x86_64.tar.gz
+      sha256: bbd36968b5aefdf91c2ede0d2e131f8b552cba6ed2444da59f1a0bc0bfc6792d
+      target_directory: .deps/slang
+  - if: target_platform == "linux-aarch64"
+    then:
+      url: https://github.com/shader-slang/slang/releases/download/v${{ slang_version }}/slang-${{ slang_version }}-linux-aarch64.tar.gz
+      sha256: 8ad6a8449e18d183aa3b75cb3c8421fd5eb5396ee4b095eba69aec75c022f5d3
+      target_directory: .deps/slang
+  - if: target_platform == "osx-arm64"
+    then:
+      - url: https://github.com/shader-slang/slang/releases/download/v${{ slang_version_macos }}/slang-${{ slang_version_macos }}-macos-aarch64.tar.gz
+        sha256: 18461d1f772b68d962c5a3508f1aa7e22b0a740da0b6c7ac948833d86641d870
+        target_directory: .deps/slang
+      # SS_MOLTENVK_VERSION in cmake/SsVulkan.cmake; linked statically.
+      - url: https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.2/MoltenVK-macos.tar
+        sha256: f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e
+        target_directory: .deps/moltenvk
+
+build:
+  number: 0
+  script: build.sh
+  skip:
+    - win
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
+    - cmake
+    - ninja
+  host:
+    - if: linux
+      then:
+        - libvulkan-loader >=1.4.357
+        - libvulkan-headers >=1.4.357
+        - libgl-devel
+        # GLFW dlopens these at runtime, so rattler-build reports them as
+        # overdepending; their run_exports are what the GUI needs.
+        - xorg-libx11
+        - xorg-libxcursor
+        - xorg-libxext
+        - xorg-libxi
+        - xorg-libxinerama
+        - xorg-libxrandr
+        - xorg-xorgproto
+    - if: osx
+      then:
+        - llvm-openmp
+  run:
+    # Video frame extraction shells out to ffmpeg while SS_ENABLE_PATENTED is off.
+    - ffmpeg
+
+tests:
+  - package_contents:
+      bin:
+        - spirula
+  - script:
+      - test "$(spirula --version)" = "${{ version }}"
+      - spirula --help
+      - spirula train --help
+
+about:
+  homepage: https://github.com/harry7557558/spirula-studio
+  repository: https://github.com/harry7557558/spirula-studio
+  license: GPL-3.0-only
+  license_file:
+    - LICENSE
+    - LICENSES/
+  summary: Gaussian splatting studio (SfM, training, meshing, GUI) on Vulkan
+  description: |
+    Spirula Studio reconstructs 3D scenes from photos and videos with Gaussian
+    splatting: structure from motion, training, masking and mesh extraction,
+    as one `spirula` executable with a GUI and a CLI. Vulkan backend: NVIDIA,
+    AMD and Intel GPUs on Linux, Apple Silicon through a statically linked
+    MoltenVK on macOS. The GPU driver comes from the system.

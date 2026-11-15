@@ -1,0 +1,16 @@
+# macOS builds on the Mac mini without conda_build_config.yaml (Linux-only),
+# so stdlib('c') and the compilers take their macOS values from here.
+c_stdlib:
+  - if: osx
+    then: macosx_deployment_target
+c_stdlib_version:
+  - if: osx
+    then: "11.0"
+# libc++ 23 no longer includes <cstdlib> transitively, and the 2026.11.12
+# sources rely on that (std::strtoll in src/nn/io/Safetensors.cpp).
+c_compiler_version:
+  - if: osx
+    then: "21"
+cxx_compiler_version:
+  - if: osx
+    then: "21"
