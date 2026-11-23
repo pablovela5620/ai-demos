@@ -1,5 +1,5 @@
 context:
-  version: "3.11.2"
+  version: "3.12.0"
 
 package:
   name: splat-transform
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://registry.npmjs.org/@playcanvas/splat-transform/-/splat-transform-${{ version }}.tgz
-  sha256: df69fff5337af568138260df67c88b04e4412f94e79eef2facb8641caad92de7
+  sha256: cc7606899d53a798d451372437a5efe3cb615764b0954f36fd5db16e5bb81e36
 
 build:
   number: 0
