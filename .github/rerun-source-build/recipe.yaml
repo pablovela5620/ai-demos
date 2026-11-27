@@ -1,5 +1,5 @@
 context:
-  version: "0.42.0"
+  version: "0.44.0"
 
 package:
   name: rerun-sdk
@@ -7,10 +7,10 @@ package:
 
 source:
   url: https://github.com/rerun-io/rerun/archive/refs/tags/${{ version }}.tar.gz
-  sha256: a8f4eda6af7d54c0a89762183eea9042d5e8c7d20eb4c574e0a9aca7990b463a
+  sha256: c861f6fd2c2d558b16da6a070f79174a7f967a0b1968d7fabe2b445c9a00321b
   patches:
-    - rerun-0.42.0-av1-arm64.patch
-    - rerun-0.42.0-proxy-slow-reader.patch
+    - rerun-0.44.0-av1-arm64.patch
+    - rerun-0.44.0-proxy-slow-reader.patch
 
 build:
   number: 0
@@ -27,13 +27,14 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
+    # Cargo fetches the re_rav1d 0.1.4 git dependency with the git CLI.
+    - git
     - rust ==1.98.1
     - rust-std-wasm32-unknown-unknown ==1.98.1
     - wasm-bindgen-cli ==0.2.129
     - cargo-bundle-licenses
     - binaryen
     - nodejs >=20.12,!=26.8.0
-    - yarn
     - nasm
     - clang
     - llvm-tools
@@ -73,8 +74,8 @@ tests:
   - script:
       - rerun --version
       - rerun --version | grep 'Video features:.*av1'
-      - rerun viewer-mcp --help
-      - python -c "import rerun; assert rerun.__version__ == '0.42.0'"
+      - rerun mcp --help
+      - python -c "import rerun; assert rerun.__version__ == '0.44.0'"
 
 about:
   homepage: https://rerun.io
@@ -86,7 +87,7 @@ about:
     - THIRDPARTY.yml
   summary: Rerun SDK and viewer with native AV1 decoding on Linux ARM64
   description: |
-    Temporary 0.42.0 source build with the native AV1 ARM64 fix for
+    Temporary 0.44.0 source build with the native AV1 ARM64 fix for
     rerun-io/rerun#7755. Includes the Python SDK, native viewer, web viewer,
     and notebook integration. Remove this recipe once a released upstream
     version supports native AV1 on Linux ARM64.
