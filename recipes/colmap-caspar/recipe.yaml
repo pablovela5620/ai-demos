@@ -1,0 +1,196 @@
+# COLMAP + pycolmap with CASPAR (GPU bundle adjustment) and our Caspar patches, for examples-monorepo's colsfm.
+#
+# Why: every distributed COLMAP build ships CASPAR_ENABLED=OFF, and upstream CASPAR has no OPENCV_FISHEYE /
+# FULL_OPENCV adapters and no sensor_from_rig refinement. The patches live only in examples-monorepo
+# recipes/colmap-src/patches (provenance and cut script there) and are taken from it at `monorepo_rev`.
+#
+# Why the host pins are exact: the run_exports must co-solve with the colsfm environment's lock, and onnxruntime-cpp
+# must be the build of that env's Python onnxruntime (one ONNX Runtime per env).
+context:
+  # The patches apply to this revision only; their SHA256SUMS proves it.
+  colmap_rev: 137f21680c79d3f2fffbb1d11deb367162aa6f83
+  monorepo_rev: e19e7095f1770df771750de5cad4482b239d9463
+  patches_url: https://raw.githubusercontent.com/rerun-io/examples-monorepo/${{ monorepo_rev }}/recipes/colmap-src/patches
+  # SASS and PTX for each GPU of the platform: 3060 (86), 4090 (89), 5090 (120); DGX Spark GB10 (121).
+  cuda_archs: ${{ "121" if target_platform == "linux-aarch64" else "86;89;120" }}
+  cuda_arch_tag: ${{ cuda_archs | replace(";", "_") }}
+
+package:
+  name: colmap-caspar
+  version: "4.3.0.dev0"
+
+source:
+  - git: https://github.com/colmap/colmap.git
+    rev: ${{ colmap_rev }}
+  # The build script applies them in file_name order.
+  - url: ${{ patches_url }}/add-caspar-adapters.patch
+    sha256: 1528f8b2acd0a156a1225671337ed9ed060a186d633acee062cae528bf274fce
+    target_directory: caspar-patches
+    file_name: 01-add-caspar-adapters.patch
+  - url: ${{ patches_url }}/add-caspar-adapters-generated-f32.patch
+    sha256: 6a4c785b98f5c8a86313e7043d1dd99a4e74023bb282d5ed616ac6f87c5c6e09
+    target_directory: caspar-patches
+    file_name: 02-add-caspar-adapters-generated-f32.patch
+  - url: ${{ patches_url }}/add-database-transaction-rollback.patch
+    sha256: 6d0875b35a52b4c9951efe8ac70a872d6ba4d5ad824d59f811707d3dd21c44fe
+    target_directory: caspar-patches
+    file_name: 03-add-database-transaction-rollback.patch
+  - url: ${{ patches_url }}/caspar-pcg-beta-recurrence.patch
+    sha256: 87b9e375d34e492d13843887fb440cec7e2d7bcb589dad4aa6472ddbe6b3501c
+    target_directory: caspar-patches
+    file_name: 04-caspar-pcg-beta-recurrence.patch
+  - url: ${{ patches_url }}/caspar-reduced-camera-system.patch
+    sha256: c361636575b3c2da2c372c9dd45c23570c975e9d188b5e6edd73bbf6f8df6861
+    target_directory: caspar-patches
+    file_name: 05-caspar-reduced-camera-system.patch
+  - url: ${{ patches_url }}/caspar-diag-exit-no-convergence.patch
+    sha256: 4bc7f8420593f7e844c6ab6cbe68a2cabe8f56ae6a4fc1bde70c09c058cd592d
+    target_directory: caspar-patches
+    file_name: 06-caspar-diag-exit-no-convergence.patch
+  - url: ${{ patches_url }}/caspar-rig-refine.patch
+    sha256: 607355d62511877eb542ca9d33045ff83b2b61f90dd5dcc264ef65e0f3201d11
+    target_directory: caspar-patches
+    file_name: 07-caspar-rig-refine.patch
+  - url: ${{ patches_url }}/caspar-rig-refine-generated-f32.patch
+    sha256: 7a35fd759f32cce89da24de4077b7c5508a8bd7efc719e8b4374908bb6c5ae60
+    target_directory: caspar-patches
+    file_name: 08-caspar-rig-refine-generated-f32.patch
+  - url: ${{ patches_url }}/SHA256SUMS
+    sha256: 4d554a2cd73391ac5548fc41c16d8a42e83b833bdc8442b6801e875bddcecd97
+    target_directory: caspar-patches
+
+build:
+  # Bump with every patch, script or pin edit: the build string has no hash, and CI skips a build string
+  # that is already on the channel.
+  number: 0
+  # CEP 26: at most 64 characters.
+  string: c${{ colmap_rev[:7] }}_cu130_sm${{ cuda_arch_tag }}_py312_${{ build_number }}
+  skip: not linux
+  script:
+    # git apply fails on a hunk that does not apply; SHA256SUMS then proves every patched file matches the tree the
+    # patches were cut from, before the long CUDA compile (a wrong solver.cc would compile and solve wrong).
+    - for patch in caspar-patches/*.patch; do git apply "$patch"; done
+    - sha256sum --quiet -c caspar-patches/SHA256SUMS
+    # conda's onnxruntime-cpp nests its headers; COLMAP includes them flat.
+    - export CPATH="$PREFIX/include/onnxruntime/core/session${CPATH:+:$CPATH}"
+    # pycolmap builds only the bindings and links an installed libcolmap, which is where CASPAR_ENABLED lives.
+    # FETCH_*=OFF: the fetched onnxruntime is CUDA 12, and faiss/poselib come from conda.
+    - >-
+      cmake -S . -B build_colmap -GNinja
+      -DCMAKE_BUILD_TYPE=Release
+      -DCMAKE_INSTALL_PREFIX=$PREFIX
+      -DCMAKE_PREFIX_PATH=$PREFIX
+      -DCUDA_ENABLED=ON
+      -DCASPAR_ENABLED=ON
+      -DGUI_ENABLED=OFF
+      -DTESTS_ENABLED=OFF
+      -DFETCH_ONNX=OFF
+      -DFETCH_FAISS=OFF
+      -DFETCH_POSELIB=OFF
+      -DFETCH_BOOST=OFF
+      "-DCMAKE_CUDA_ARCHITECTURES=${{ cuda_archs }}"
+    - cmake --build build_colmap --parallel ${{ CPU_COUNT }}
+    - cmake --install build_colmap
+    - export CMAKE_PREFIX_PATH="$PREFIX:${CMAKE_PREFIX_PATH:-}"
+    # scikit-build-core builds with one job without this.
+    - export CMAKE_BUILD_PARALLEL_LEVEL=${{ CPU_COUNT }}
+    - export CMAKE_ARGS="-DCASPAR_ENABLED=ON -DCMAKE_CUDA_ARCHITECTURES=${{ cuda_archs }} -DGENERATE_STUBS=ON -DFETCH_ONNX=OFF -DFETCH_FAISS=OFF -DFETCH_POSELIB=OFF -DFETCH_BOOST=OFF -DCMAKE_PREFIX_PATH=$PREFIX"
+    - python -m pip install . -vv --no-build-isolation --no-deps
+    # CI builds with --no-test, so the content checks run here: the adapters reached the extension (0 hits in a
+    # stock build), the stubs were installed, and FlexGlue was compiled (only with ONNX on).
+    - grep -aq OpenCVFisheyeAdapter "$SP_DIR"/pycolmap/_core*.so
+    - grep -aq FullOpenCVAdapter "$SP_DIR"/pycolmap/_core*.so
+    - test -f "$SP_DIR"/pycolmap/_core/__init__.pyi
+    - grep -rlaq flexglue_descriptor.onnx "$PREFIX"/lib/libcolmap* "$SP_DIR"/pycolmap/
+
+requirements:
+  build:
+    # gcc 15 and glibc 2.34, as the monorepo's source build whose binary the colsfm results come from. Spelled out:
+    # a recipe-local variants.yaml does not override conda_build_config.yaml (gcc 13), and an unpinned sysroot
+    # resolves to the newest glibc, so the package would not load on a glibc 2.35 host.
+    - gxx_${{ target_platform }} 15.*
+    - gcc_${{ target_platform }} 15.*
+    - sysroot_${{ target_platform }} 2.34.*
+    # An unpinned cuda-nvcc takes a newer toolkit than the 13.0 headers.
+    - cuda-nvcc 13.0.*
+    - cuda-version 13.0.*
+    - cmake
+    - ninja
+    - make
+    - git
+    - libgomp
+    - patchelf
+    # pycolmap's generate_stubs.sh post-processes the stubs with perl and formats them with ruff.
+    - perl
+    - ruff
+  host:
+    - python 3.12.*
+    - pip
+    - scikit-build-core
+    - pybind11-stubgen 3.*
+    - pybind11 >=3.0,<4
+    - numpy 2.5.*
+    - libboost-devel 1.90.0.*
+    - eigen 5.0.1.*
+    - ceres-solver 2.2.0.* gpugpl*
+    - poselib 2.0.5.*
+    - cgal-cpp 6.2.*
+    - sqlite 3.54.1.*
+    - flann 1.9.2.*
+    - glog 0.7.1.*
+    - gflags 2.3.1.*
+    - freeimage 3.18.0.*
+    - metis 5.1.0.*
+    - gmp 6.3.0.*
+    - lz4-c 1.10.0.*
+    - if: target_platform == "linux-aarch64"
+      then: libfaiss 1.14.3.* *_cuda
+      else: libfaiss 1.10.0.* *_cuda
+    - libopenimageio 3.1.15.0.*
+    - giflib 5.2.2.*
+    - ffmpeg 8.1.2.*
+    - libabseil 20260526.0.*
+    - libprotobuf 7.35.1.*
+    - openexr 3.4.15.*
+    - imath 3.2.2.*
+    - fmt 12.1.0.*
+    - onnxruntime-cpp ==1.30.0 *_201_cuda130
+    # COLMAP's FindDependencies.cmake needs OpenGL even with GUI_ENABLED=OFF.
+    - libgl-devel
+    - libopengl-devel
+    - libglx-devel
+    - libegl-devel
+    - glew 2.3.0.*
+    - cuda-version 13.0.*
+    - cuda-cudart-dev
+    - libcurand-dev
+    - libcublas-dev
+    - libcusparse-dev
+    - libcusolver-dev
+  run:
+    - python 3.12.*
+    - numpy
+    - libopenimageio
+    - libfaiss
+    - ceres-solver
+    - poselib
+    - onnxruntime-cpp * *_cuda130
+  run_constraints:
+    # Built with CUDA 13.0.
+    - __cuda >=13.0
+    # conda-forge's colmap and pycolmap install the same files.
+    - colmap <0a0
+    - pycolmap <0a0
+
+tests:
+  # Runs only in a build without --no-test (ci-build and the pixi tasks pass it). Needs no GPU or driver:
+  # pycolmap links libcudart, not libcuda.
+  - script:
+      - python -c "import pycolmap; assert pycolmap.has_cuda"
+
+about:
+  homepage: https://colmap.github.io/
+  repository: https://github.com/colmap/colmap
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: COLMAP + pycolmap main ${{ colmap_rev[:8] }} with CASPAR GPU bundle adjustment, OPENCV_FISHEYE and FULL_OPENCV Caspar adapters and sensor_from_rig refinement, CUDA 13.
