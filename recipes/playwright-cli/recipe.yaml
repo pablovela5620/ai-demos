@@ -10,7 +10,10 @@ source:
   sha256: 4559e4674cb5d10a03e0c15e9f5c892dcfa4f5d8703c49146594b4af322480f4
 
 build:
-  number: 0
+  number: 1
+  # Pure JavaScript (npm, no native parts, install scripts skipped): one package for every platform,
+  # so the Linux CI publishes it for macOS too and no Mac build step is needed.
+  noarch: generic
   script: build.sh
 
 requirements:
