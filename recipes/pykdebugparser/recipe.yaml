@@ -1,13 +1,13 @@
 context:
-  version: "1.2.8"
+  version: "1.10.0"
 
 package:
   name: pykdebugparser
   version: ${{ version }}
 
 source:
-  url: https://files.pythonhosted.org/packages/6b/32/9838c8e756717fecf47f1aedd1e21ec70dbe1e4bd6d96f9060d7274aae72/pykdebugparser-1.2.8.tar.gz
-  sha256: fa692b469874c2bfb830f55f854648e5f5641353e3b7be16573286ef0c05fabc
+  url: https://files.pythonhosted.org/packages/13/77/fc89236fb1d87cafe5d822f55b4d12bdbf291743b496041f37923ffc8aeb/pykdebugparser-1.10.0.tar.gz
+  sha256: d21c95d25e36e53b0a0542233bedfec68adf9e8f170bdf3da992e3837664263e
 
 build:
   number: 0
@@ -21,12 +21,12 @@ requirements:
   host:
     - python 3.13.*
     - pip
-    - setuptools
+    - setuptools >=43.0.0
+    - setuptools-scm >=8
     - wheel
   run:
     - python >=3.13,<3.14
-    - construct
-    - pygments
+    - bytestruct >=0.1.0
     - click
     - termcolor
 

@@ -5,9 +5,17 @@ platform/Python markers aligned with the dependency set tested on the Mac mini.
 Do not remove the platform restriction without adding the non-macOS dependencies
 (including the appropriate video and compression libraries) and testing them.
 
-The accompanying recipes provide dependencies missing from conda-forge, a newer
-`construct-typing`, and a noarch `enum-compat` usable with Python 3.13. Recheck
-conda-forge before adding or updating a dependency recipe.
+The accompanying recipes provide dependencies that conda-forge lacked when the
+package was added. Conda-forge now has most of them, but the fleet installs with
+strict channel priority and lists `ai-demos` first, so a package published here
+hides every conda-forge version. When pymobiledevice3 raises a lower bound on
+such a dependency (11.59.0: `pykdebugparser`, `ipsw-parser`, `opack2`,
+`pmd-pytcp`), bump that recipe too. Dependencies not published here
+(`ansilogs`, `bytestruct`, `ioregistry`, `rich`) come from conda-forge.
+
+The `pymobiledevice3` package itself is built for `osx-arm64` on the Mac mini and
+published through the macOS staging allowlist; its noarch dependencies are built
+and published by the Linux CI.
 
 Packaging corrections found by the CLI tests:
 

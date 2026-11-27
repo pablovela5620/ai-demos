@@ -99,5 +99,25 @@ build:
             self.assertIn("number: 1  # autobump: preserve-build-number", updated)
 
 
+    def test_github_source_reads_latest_release_tag(self) -> None:
+        """Track a GitHub release when the npm package lags (OpenCode 2 is GitHub-only)."""
+        updater: ModuleType = load_updater()
+        # GitHub flags the 1.x maintenance release "latest"; the newest 2.x must win.
+        releases: bytes = (
+            b'[{"tag_name": "v2.4.2"}, {"tag_name": "v2.5.0", "prerelease": true},'
+            b' {"tag_name": "process-daemon-v0.6.0"}, {"tag_name": "v1.19.6"}, {"tag_name": "v2.3.10"}]'
+        )
+        with patch.object(updater, "read_url_bytes", return_value=releases) as read:
+            version: str = updater.fetch_latest_version("github:anomalyco/opencode")
+
+        self.assertEqual(version, "2.4.2")
+        read.assert_called_once_with("https://api.github.com/repos/anomalyco/opencode/releases?per_page=100")
+
+    def test_opencode_autobump_tracks_github_releases(self) -> None:
+        """The npm opencode-ai latest tag stays on 1.x, below the packaged 2.x."""
+        workflow: str = (ROOT / ".github" / "workflows" / "autobump.yml").read_text(encoding="utf-8")
+        self.assertIn('npm-package: "github:anomalyco/opencode"', workflow)
+        self.assertNotIn('npm-package: "opencode-ai"', workflow)
+
 if __name__ == "__main__":
     unittest.main()

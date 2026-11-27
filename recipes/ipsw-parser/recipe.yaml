@@ -1,13 +1,13 @@
 context:
-  version: "1.7.5"
+  version: "1.9.2"
 
 package:
   name: ipsw-parser
   version: ${{ version }}
 
 source:
-  url: https://files.pythonhosted.org/packages/ab/ca/40960ace6e13f05101e05ad9695c54969d4943588930c27dca153db56d82/ipsw_parser-1.7.5.tar.gz
-  sha256: e49682388731cc9c2a275bf0d2b35746d7619bd352e4a46189efb2f50acc3e1f
+  url: https://files.pythonhosted.org/packages/2c/7f/6785979fc22745f6c5f5ee552ef3d0d76a8344cf8129e97d6f6c390f38fb/ipsw_parser-1.9.2.tar.gz
+  sha256: b9b6bcaab2b49691f6ff90aa6703a4e2be7e8ff8f85534e7ba65bb8565dd0db9
 
 build:
   number: 0
@@ -26,9 +26,8 @@ requirements:
     - wheel
   run:
     - python >=3.13,<3.14
-    - construct >=2.9.29
-    - coloredlogs
-    - plumbum
+    - ansilogs >=1.1.0
+    - bytestruct >=0.1.0
     - pyimg4 >=0.8.8
     - requests
     - remotezip2

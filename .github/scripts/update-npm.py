@@ -16,6 +16,7 @@ from typing import NoReturn
 
 
 REGISTRY_HOST: str = "registry.npmjs.org"
+GITHUB_SOURCE_PREFIX: str = "github:"
 RECIPE_ROOT: Path = Path("recipes")
 CHUNK_SIZE: int = 1024 * 1024
 
@@ -90,7 +91,7 @@ class BuildNumberLine:
 
 def usage() -> NoReturn:
     """Print command usage and exit."""
-    print("Usage: update-npm.py <recipe-name> <npm-package>", file=sys.stderr)
+    print("Usage: update-npm.py <recipe-name> <npm-package | github:owner/repo>", file=sys.stderr)
     raise SystemExit(2)
 
 
@@ -277,16 +278,50 @@ def npm_registry_url(npm_package: str) -> str:
 
 def read_url_bytes(url: str) -> bytes:
     """Read a URL as bytes with a deterministic user agent."""
-    request: urllib.request.Request = urllib.request.Request(
-        url,
-        headers={"User-Agent": "ai-demos-autobump/1.0"},
-    )
+    headers: dict[str, str] = {"User-Agent": "ai-demos-autobump/1.0"}
+    token: str | None = os.environ.get("GH_TOKEN")
+    if token and url.startswith("https://api.github.com/"):
+        headers["Authorization"] = f"Bearer {token}"
+    request: urllib.request.Request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=60) as response:
         return response.read()
 
 
+def fetch_latest_github_release(repository: str) -> str:
+    """Fetch the highest stable vX.Y.Z release of a GitHub repository, without the v.
+
+    GitHub's "latest" flag is unreliable here: OpenCode marks its 1.x maintenance
+    release latest while it publishes 2.x, so compare the recent tags instead.
+    """
+    releases_url: str = f"https://api.github.com/repos/{repository}/releases?per_page=100"
+    releases: object = json.loads(read_url_bytes(releases_url).decode("utf-8"))
+    if not isinstance(releases, list):
+        raise ValueError(f"Unexpected GitHub releases for {repository}: expected JSON array")
+
+    versions: list[str] = [
+        release["tag_name"].removeprefix("v")
+        for release in releases
+        if isinstance(release, dict)
+        and not release.get("draft")
+        and not release.get("prerelease")
+        and isinstance(release.get("tag_name"), str)
+        and re.fullmatch(r"v?\d+\.\d+\.\d+", release["tag_name"])
+    ]
+    if not versions:
+        raise ValueError(f"No stable vX.Y.Z release found for {repository}")
+
+    latest: str = versions[0]
+    for version in versions[1:]:
+        if compare_versions(version, latest) > 0:
+            latest = version
+    return latest
+
+
 def fetch_latest_version(npm_package: str) -> str:
-    """Fetch the latest version for an npm package."""
+    """Fetch the latest version for an npm package, or a github:owner/repo release."""
+    if npm_package.startswith(GITHUB_SOURCE_PREFIX):
+        return fetch_latest_github_release(npm_package.removeprefix(GITHUB_SOURCE_PREFIX))
+
     metadata_url: str = npm_registry_url(npm_package)
     metadata_bytes: bytes = read_url_bytes(metadata_url)
     metadata: object = json.loads(metadata_bytes.decode("utf-8"))
