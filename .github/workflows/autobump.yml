@@ -34,7 +34,8 @@ jobs:
           - recipe: ruler
             npm-package: "@intellectronica/ruler"
           - recipe: opencode
-            npm-package: "opencode-ai"
+            # OpenCode 2 ships only as GitHub release binaries; npm opencode-ai stays on 1.x.
+            npm-package: "github:anomalyco/opencode"
           - recipe: openwiki
             npm-package: "openwiki"
     # NB: the package filter lives on the steps, not the job — the `matrix`

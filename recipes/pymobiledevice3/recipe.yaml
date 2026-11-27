@@ -1,13 +1,13 @@
 context:
-  version: "11.3.1"
+  version: "11.59.0"
 
 package:
   name: pymobiledevice3
   version: ${{ version }}
 
 source:
-  url: https://files.pythonhosted.org/packages/97/44/859d8686fb1dc2fb6c99d1dc815caed0362745fb54aa02c0feda8bde9cb3/pymobiledevice3-11.3.1.tar.gz
-  sha256: 02314b0e4e36bfcc6539840a711a9afb1464ede39ed99701e626c5c863a7acbc
+  url: https://files.pythonhosted.org/packages/c3/c3/a4bd30c8dd557aef4b69f7447c730f4e736d3a222698a9651f2daa69af41/pymobiledevice3-11.59.0.tar.gz
+  sha256: 884265706787e5b1802c344b8f9ccffaf09cd91413cb62db27070e97a542c26d
   patches:
     - verified-https-tss.patch
 
@@ -29,50 +29,44 @@ requirements:
     - wheel
   run:
     - python >=3.13,<3.14
-    - construct >=2.9.29
-    - construct-typing >=0.8.0
     - asn1
-    - coloredlogs
     - ipython
     - bpylist2 >=4.0.1
     - pygments
-    - hexdump
     - daemonize
-    - gpxpy !=1.6.0,<1.7.0
-    - pykdebugparser >=1.2.7
-    - pyusb >=1.2.1
-    - tqdm
+    - pykdebugparser >=1.10.0
+    - rich >=13.0.0
+    - ansilogs >=1.2.0
     - requests
-    - xonsh
-    - parameter-decorators
     - packaging
     - typing_extensions >=4.1.0
     - pygnuutils >=0.0.7
-    - cryptography >=41.0.1
+    - cryptography >=43.0.0
     - pycrashreport >=2.0.0
     - fastapi >=0.93.0
     - uvicorn >=0.15.0
     - wsproto
     - pillow
     - questionary >=2.0.0
-    - ipsw-parser >=1.6.0
+    - ipsw-parser >=1.9.0
     - ifaddr
     - hyperframe
-    - srptools
     - qh3 <2,>=1.0.0
     - developer-disk-image >=0.3.0
-    - opack2
+    - opack2 >=0.2.0
     - psutil
     - pytun-pmd3 >=3.0.3
     - prompt_toolkit
     - python-pcapng >=2.1.1
-    - plumbum
     - pyimg4 >=0.8.8
     - pyiosbackup >=0.2.4
     - typer >=0.25
-    - typer-injector >=0.2.0
+    - typer-injector >=0.3.0
     - defusedxml
-    - pmd-pytcp >=0.3.7
+    - bytestruct >=0.1.0
+    - ioregistry >=0.0.6
+    - pmd-pytcp >=0.3.9
+    - pmd-net-addr
     - asgiwebdav >=2.0.1
     - backports.zstd
 
