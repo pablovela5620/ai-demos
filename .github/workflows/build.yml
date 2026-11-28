@@ -124,7 +124,7 @@ jobs:
           # Each staged file must be an allowlisted package at its recipe version.
           for file in *.conda; do
             matched=0
-            for package in paseo claude-code codex opencode ruler spirula pymobiledevice3; do
+            for package in paseo claude-code codex opencode ruler spirula pymobiledevice3 rerun-canonical; do
               version="$(git show "$source_sha:recipes/$package/recipe.yaml" | sed -nE 's/^  version: "([^"]+)"$/\1/p' | head -1)"
               [[ -n "$version" ]]
               [[ "$file" == "$package-$version-"*.conda ]] && matched=$((matched + 1))
