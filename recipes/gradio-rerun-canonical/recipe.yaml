@@ -1,0 +1,46 @@
+# gradio-rerun 0.44.0 with the canonical Rerun web viewer (examples-monorepo packages/canonical-viewer: every viewer
+# extension) as its embedded viewer. Built from examples-monorepo recipes/gradio-rerun-src on our machines; this recipe
+# repackages its gradio_rerun files from the rerun-canonical release of the same commit. Gradio apps pin it instead of
+# the PyPI gradio-rerun wheel, so no environment compiles the web viewer itself.
+context:
+  version: "0.44.0"
+  # examples-monorepo commit the files were built from; the release is rerun-canonical-<version>-<commit>.
+  commit: "COMMIT7"
+
+package:
+  name: gradio-rerun-canonical
+  version: ${{ version }}
+
+source:
+  url: https://github.com/pablovela5620/ai-demos/releases/download/rerun-canonical-${{ version }}-${{ commit }}/gradio-rerun-canonical-${{ version }}-${{ commit }}-noarch.tar.gz
+  sha256: SHA256_NOARCH
+
+build:
+  # examples-monorepo recipes/gradio-rerun-src's build number.
+  number: 1
+  string: canonical_${{ commit }}_${{ build_number }}
+  noarch: python
+  script:
+    - mkdir -p "$SP_DIR"
+    - cp -R site-packages/gradio_rerun site-packages/gradio_rerun-${{ version }}.dist-info "$SP_DIR/"
+
+requirements:
+  host:
+    - python >=3.10
+  run:
+    - python >=3.10
+    - gradio >=6.0.0
+    - rerun-sdk ==${{ version }}
+  run_constraints:
+    # The same import package: never beside the stock build.
+    - gradio-rerun <0
+
+tests:
+  - python:
+      imports:
+        - gradio_rerun
+      pip_check: false
+
+about:
+  homepage: https://github.com/rerun-io/examples-monorepo/tree/main/recipes/gradio-rerun-src
+  summary: gradio-rerun 0.44.0 with the canonical Rerun web viewer (every examples-monorepo viewer extension)
