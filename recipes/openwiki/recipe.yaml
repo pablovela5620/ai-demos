@@ -1,5 +1,5 @@
 context:
-  version: "0.7.2"
+  version: "0.9.0"
 
 package:
   name: openwiki
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://registry.npmjs.org/openwiki/-/openwiki-${{ version }}.tgz
-  sha256: 17f0061fbb60c9b1410b30de1c47fbcc1b639bb9519a9798e4415ca8ffbe7155
+  sha256: 8591d4ecd43310d0a11034c6245cf41173bae62e56fc788b94073700d70f3d32
 
 build:
   number: 0
