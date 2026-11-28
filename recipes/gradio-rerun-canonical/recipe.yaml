@@ -27,9 +27,11 @@ build:
 
 requirements:
   host:
-    - python >=3.10
+    - python 3.12.*
   run:
-    - python >=3.10
+    # The Python the examples-monorepo Gradio apps use and the import was verified on. Newer ones fail to import gradio
+    # itself today (3.13: pydantic and typing-inspection mismatch; 3.15: pydub finds no audioop); 3.14 imports.
+    - python 3.12.*
     - gradio >=6.0.0
     - rerun-sdk ==${{ version }}
   run_constraints:
@@ -41,8 +43,6 @@ tests:
       imports:
         - gradio_rerun
       pip_check: false
-      # gradio's pydub fails to import on the newest Python the solver picks (Python 3.15: no audioop module).
-      python_version: "3.12.*"
 
 about:
   homepage: https://github.com/rerun-io/examples-monorepo/tree/main/recipes/gradio-rerun-src
