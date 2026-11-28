@@ -79,7 +79,7 @@ to avoid private-repository usage costs. In a checkout on that machine, run
 
 Publish tested macOS packages through the same CI publisher as Linux. The
 staging job accepts only the packages it allowlists (`paseo`, `claude-code`,
-`codex`, `opencode`, `ruler`, `spirula`, and `pymobiledevice3`), each at its
+`codex`, `opencode`, `ruler`, `spirula`, `pymobiledevice3`, and `rerun-canonical`), each at its
 recipe version. This
 does not need a personal Prefix login or a hosted Mac runner. Stage the
 packages in a temporary prerelease named `macos-staging-<full recipe commit SHA>`
