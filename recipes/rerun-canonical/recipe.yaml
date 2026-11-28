@@ -5,7 +5,7 @@
 context:
   version: "0.44.0"
   # examples-monorepo commit the binaries were built from; the release is rerun-canonical-<version>-<commit>.
-  commit: "COMMIT7"
+  commit: "b402af6"
   release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-canonical-${{ version }}-${{ commit }}
 
 package:
@@ -16,15 +16,15 @@ source:
   - if: target_platform == "linux-64"
     then:
       url: ${{ release }}/rerun-canonical-${{ version }}-${{ commit }}-linux-64.tar.gz
-      sha256: SHA256_LINUX_64
+      sha256: 16ea1e985fa34b4fc47f35fdc0c9cf0f7d0763d3f72ce5b1a6fff21eb5e313e6
   - if: target_platform == "linux-aarch64"
     then:
       url: ${{ release }}/rerun-canonical-${{ version }}-${{ commit }}-linux-aarch64.tar.gz
-      sha256: SHA256_LINUX_AARCH64
+      sha256: ee86e1cba29fc4ee7d1145439790aa3665c51b26d3080bb3e6d236db2eaa38ad
   - if: target_platform == "osx-arm64"
     then:
       url: ${{ release }}/rerun-canonical-${{ version }}-${{ commit }}-osx-arm64.tar.gz
-      sha256: SHA256_OSX_ARM64
+      sha256: f03594c5805bb10091df0a91d78f57b023592ff2e9cd779d7b54f6fe345ed1b1
 
 build:
   # The examples-monorepo recipe's build number (raised for every extension or patch change at one Rerun tag).
@@ -32,8 +32,9 @@ build:
   string: canonical_${{ commit }}_${{ build_number }}
   skip: target_platform not in ["linux-64", "linux-aarch64", "osx-arm64"]
   script:
+    # The tarball holds bin/rerun-canonical; rattler-build strips its single top directory.
     - install -d "$PREFIX/bin"
-    - install -m 755 bin/rerun-canonical "$PREFIX/bin/rerun-canonical"
+    - install -m 755 rerun-canonical "$PREFIX/bin/rerun-canonical"
   dynamic_linking:
     missing_dso_allowlist:
       - "*/libSystem.B.dylib"

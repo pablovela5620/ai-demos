@@ -5,7 +5,7 @@
 context:
   version: "0.44.0"
   # examples-monorepo commit the files were built from; the release is rerun-canonical-<version>-<commit>.
-  commit: "COMMIT7"
+  commit: "b402af6"
 
 package:
   name: gradio-rerun-canonical
@@ -13,7 +13,7 @@ package:
 
 source:
   url: https://github.com/pablovela5620/ai-demos/releases/download/rerun-canonical-${{ version }}-${{ commit }}/gradio-rerun-canonical-${{ version }}-${{ commit }}-noarch.tar.gz
-  sha256: SHA256_NOARCH
+  sha256: 3400973143d8f889471f8b7c675381b90364cf9b9d6074ba2d88a311968938e7
 
 build:
   # examples-monorepo recipes/gradio-rerun-src's build number.
@@ -22,7 +22,8 @@ build:
   noarch: python
   script:
     - mkdir -p "$SP_DIR"
-    - cp -R site-packages/gradio_rerun site-packages/gradio_rerun-${{ version }}.dist-info "$SP_DIR/"
+    # The tarball holds site-packages/; rattler-build strips its single top directory.
+    - cp -R gradio_rerun gradio_rerun-${{ version }}.dist-info "$SP_DIR/"
 
 requirements:
   host:
@@ -40,6 +41,8 @@ tests:
       imports:
         - gradio_rerun
       pip_check: false
+      # gradio's pydub fails to import on the newest Python the solver picks (Python 3.15: no audioop module).
+      python_version: "3.12.*"
 
 about:
   homepage: https://github.com/rerun-io/examples-monorepo/tree/main/recipes/gradio-rerun-src
