@@ -1,0 +1,46 @@
+context:
+  version: "0.42.0.post1"
+  release: https://github.com/pablovela5620/ai-demos/releases/download/gradio-rerun-0.42.0.post1
+
+package:
+  name: gradio-rerun
+  version: ${{ version }}
+
+source:
+  - url: ${{ release }}/gradio_rerun-${{ version }}-py3-none-any.whl
+    sha256: 371ea466ac584cfead95bebe01eee9d315cc96bc3f4d0cf8da65f757e207f583
+    file_name: gradio_rerun-${{ version }}-py3-none-any.whl
+
+build:
+  number: 0
+  string: ordered_h${{ hash }}_${{ build_number }}
+  noarch: python
+  script: build.sh
+
+requirements:
+  host:
+    - python >=3.11
+    - python-installer
+  run:
+    - python >=3.11
+    - rerun-sdk ==0.42.0
+    - gradio >=6
+
+tests:
+  - script:
+      - python -c "import importlib.metadata as m; assert m.version('gradio-rerun') == '0.42.0.post1'"
+      - python -c "from gradio_rerun import Rerun; assert Rerun(streaming=True).streaming"
+      - python -c "import pathlib, sysconfig; js = pathlib.Path(sysconfig.get_paths()['purelib'], 'gradio_rerun/templates/component/index.js'); assert b'Failed to load Rerun data' in js.read_bytes()"
+
+about:
+  homepage: https://github.com/rerun-io/gradio-rerun-viewer
+  repository: https://github.com/rerun-io/gradio-rerun-viewer
+  license: MIT OR Apache-2.0
+  summary: gradio-rerun 0.42.0 whose streamed segments reach the viewer in order
+  description: |
+    Packages a checksum-pinned wheel from a GitHub release: gradio-rerun 0.42.0 with one frontend fix.
+    The component loads a streamed recording's segments one at a time, in order; upstream fetched them
+    concurrently, so on a slow link a large first segment (the blueprint and a video) reached the viewer
+    after later ones. The Python package and the viewer bundle are byte-identical to PyPI 0.42.0; only
+    templates/component/index.js differs. The rebuild inputs are kept in .github/gradio-rerun-source-build.
+    Remove this stopgap once a gradio-rerun release loads streamed segments in order.
