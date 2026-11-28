@@ -5,7 +5,7 @@
 context:
   version: "0.44.0"
   # examples-monorepo commit the binaries were built from; the release is rerun-canonical-<version>-<commit>.
-  commit: "b402af6"
+  commit: "a61ddc2"
   release: https://github.com/pablovela5620/ai-demos/releases/download/rerun-canonical-${{ version }}-${{ commit }}
 
 package:
@@ -16,19 +16,19 @@ source:
   - if: target_platform == "linux-64"
     then:
       url: ${{ release }}/rerun-canonical-${{ version }}-${{ commit }}-linux-64.tar.gz
-      sha256: 16ea1e985fa34b4fc47f35fdc0c9cf0f7d0763d3f72ce5b1a6fff21eb5e313e6
+      sha256: 7dec6e6275a881a6f652cb4bd69f3e918aed2e9b064042caaf80b47c5ad289a8
   - if: target_platform == "linux-aarch64"
     then:
       url: ${{ release }}/rerun-canonical-${{ version }}-${{ commit }}-linux-aarch64.tar.gz
-      sha256: ee86e1cba29fc4ee7d1145439790aa3665c51b26d3080bb3e6d236db2eaa38ad
+      sha256: 61821ad06bceebe7302caa2a466958c39b03927e73541a00c70d853bc9126f7d
   - if: target_platform == "osx-arm64"
     then:
       url: ${{ release }}/rerun-canonical-${{ version }}-${{ commit }}-osx-arm64.tar.gz
-      sha256: f03594c5805bb10091df0a91d78f57b023592ff2e9cd779d7b54f6fe345ed1b1
+      sha256: b41e24b769455c7b1dfda097bcd1991c34841a94c4c67ef5205ea1ce361eda7a
 
 build:
   # The examples-monorepo recipe's build number (raised for every extension or patch change at one Rerun tag).
-  number: 1
+  number: 2
   string: canonical_${{ commit }}_${{ build_number }}
   skip: target_platform not in ["linux-64", "linux-aarch64", "osx-arm64"]
   script:
@@ -61,7 +61,8 @@ requirements:
         - xorg-libxi
         - xorg-libxinerama
         - xorg-libxrandr
-        - __glibc >=2.17
+        # The binaries are linked against a glibc 2.28 sysroot (examples-monorepo recipe/variants.yaml).
+        - __glibc >=2.28
     - if: osx
       then: __osx >=11.0
 
